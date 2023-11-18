@@ -61,7 +61,7 @@ public:
         in.open(fileName.c_str());
 
         if (!in.is_open()) {
-            // 找不到文件
+            // can't find
             cout << "Can't open the file." << endl ;
             return false;
         }
