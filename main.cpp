@@ -47,8 +47,13 @@ public:
         fileID = fileNo;
         string fileName = "input" + fileNo + ".txt";
         in.open(fileName.c_str());
-        if ( !in.is_open() )
+
+        if (!in.is_open()) {
+            // 找不到文件
+            cout << "Can't open the file." << endl ;
             return false;
+        }
+
 
         string temp;
         jobType aJob;
@@ -61,8 +66,11 @@ public:
         in.close();
         return true;
     }
+
+
     bool getSorted() {
-        getAll();
+        if (!getAll())
+            return false;
         sortByArrival();
         ofstream outFile;
         string fileName = "sorted" + fileID + ".txt";
@@ -95,14 +103,21 @@ int main() {
     cout << "* 1. Sort a file                     *" << endl;
     cout << "* 2. Simulate one FIFO queue         *" << endl;
     cout << "**************************************" << endl;
-    cout << "Input a command(0, 1, 2): ";
-    cin >> cmd;
+
+
     Joblist aList;
-    while ( cmd != 0 ) {
+    do {
+        cout << "Input a command(0, 1, 2): ";
+        cin >> cmd;
+
         if ( cmd == 1 ) {
 
             if ( aList.getSorted() )
                 cout << "success\n";
+            else {
+                continue;
+            }
+
         }
         else if ( cmd == 2 ) {
             aList.getAll();
@@ -111,7 +126,6 @@ int main() {
         else
             cout << "Command does not exist!" << endl;
 
-        cin >> cmd;
-    }
+    } while ( cmd != 0 ) ;
 
 }
