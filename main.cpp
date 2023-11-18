@@ -25,7 +25,7 @@ bool cmp( const jobType& leftOne, const jobType& rightOne ) {
     else
         return false;
 }
-class Joblist {
+class JobList {
 private:
     vector<jobType> list;
     string fileID;
@@ -48,8 +48,19 @@ private:
 
         cout << "Sorting data:" << duration << "ms"<<endl;
     }
+    void reset() {
+        list.clear();
+        fileID.clear();
+    }
 
 public:
+    JobList() {
+        reset();
+    }
+    ~JobList() {
+        reset();
+    }
+
     bool getAll() {
         string fileNo;
         cout << "Input a file number: ";
@@ -126,7 +137,7 @@ int main() {
     cout << "**************************************" << endl;
 
 
-    Joblist aList;
+    JobList aList;
     do {
         cout << "Input a command(0, 1, 2): ";
         cin >> cmd;
