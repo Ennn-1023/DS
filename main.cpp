@@ -30,7 +30,6 @@ private:
     vector<jobType> list;
     string fileID;
     void sortByArrival() {
-        Begin = clock();
         int n = list.size();
         for ( int stepLength = n/2; stepLength > 0;stepLength /= 2 ) {
             for ( int unsorted = stepLength; unsorted < n; unsorted++ ) {
@@ -43,14 +42,26 @@ private:
                 list[loc+stepLength] = nextJob;
             }
         }
-        End = clock();
-        duration = double(End - Begin) / CLK_TCK;
-
-        cout << "Sorting data:" << duration << "ms"<<endl;
     }
     void reset() {
         list.clear();
         fileID.clear();
+    }
+    void writeFile( string fileName ) {
+        ofstream outFile;
+        outFile.open(fileName.c_str());
+        if (!outFile.is_open())
+            cout << "Error\n";
+        else {
+            outFile << "OID\tArrival\tDuration\tTimeOut" << endl;
+
+            for (int i = 0; i < list.size(); i++) {
+                outFile << list[i].OID << "\t" << list[i].arrival << "\t";
+                outFile << list[i].duration << "\t" << list[i].timeout << endl;
+            }
+
+            outFile.close();
+        }
     }
 
 public:
@@ -61,19 +72,14 @@ public:
         reset();
     }
 
-    bool getAll() {
-        string fileNo;
-        cout << "Input a file number: ";
-        cin >> fileNo;
+    bool getAll( string fileName ) {
+
         ifstream in;
-        fileID = fileNo;
-        string fileName = "input" + fileNo + ".txt";
         Begin = clock();
         in.open(fileName.c_str());
 
         if (!in.is_open()) {
             // can't find
-            cout << "Can't open the file." << endl ;
             return false;
         }
 
@@ -81,7 +87,6 @@ public:
         string temp;
         jobType aJob;
         getline(in, temp);
-        char ch;
         while (in >> aJob.OID >> aJob.arrival >> aJob.duration >> aJob.timeout) {
             list.push_back(aJob);
         }
@@ -90,42 +95,56 @@ public:
         End = clock();
         duration = double(End - Begin) / CLK_TCK;
 
-        cout << "Reading data:" << duration << "ms"<<endl;
         return true;
     }
 
 
-    bool getSorted() {
-        if (!getAll())
+    bool getSorted( string fileName ) {
+        int readTime, sortTime, writeTime;
+        Begin = clock();
+        if (!getAll(fileName))
             return false;
+        End = clock();
+        show();
+        readTime = End - Begin;
+
+        // sorting
+        Begin = clock();
         sortByArrival();
-        ofstream outFile;
-        string fileName = "sorted" + fileID + ".txt";
+        End = clock();
+        sortTime = End - Begin;
+
+        fileName = "sorted" + fileID + ".txt";
         // write file
         Begin = clock();
-        outFile.open(fileName.c_str());
-        if (!outFile.is_open())
-            return false;
-        else {
-            outFile << "OID\tArrival\tDuration\tTimeOut" << endl;
-            for (int i = 0; i < list.size(); i++) {
-                outFile << list[i].OID << "\t" << list[i].arrival << "\t";
-                outFile << list[i].duration << "\t" << list[i].timeout << endl;
-            }
-            outFile.close();
-            End = clock();
-            duration = double(End - Begin) / CLK_TCK;
+        writeFile( fileName );
+        End = clock();
+        writeTime = End - Begin;
 
-            cout << "Writing data:" << duration << "ms"<<endl;
-            return true;
-        }
+        system("PAUSE");
+        cout << endl << "Reading data: " << readTime << " clocks (" << readTime << ".00 ms).";
+        cout << endl << "Sorting data: " << sortTime << " clocks (" <<sortTime << ".00 ms).";
+        cout << endl << "Writing data: " << writeTime << " clocks (" << writeTime << ".00 ms).";
+        cout << endl;
+        cout << endl << "see " + fileName << endl;
+        return true;
     }
     void show() {
-        cout << "OID\tArrival\tDuration\tTimeOut\n";
+        cout << "\tOID\tArrival\tDuration\tTimeOut";
         for ( int i = 0; i < list.size(); i++ ) {
+            cout << endl << "(" << i+1 << ")\t";
             cout << list[i].OID << "\t" << list[i].arrival << "\t";
-            cout << list[i].duration << "\t" << list[i].timeout << endl;
+            cout << list[i].duration << "\t" << list[i].timeout;
         }
+        cout << endl;
+    }
+    string getID() {
+        return fileID;
+    }
+
+    void setID() {
+        cout << endl << "Input a file number: ";
+        cin >> fileID;
     }
 };
 
@@ -187,34 +206,40 @@ public:
 
 int main() {
     int cmd = -1;
-    cout << "**** Simulate FIFO Queues by SQF *****" << endl;
-    cout << "* 0. Quit                            *" << endl;
-    cout << "* 1. Sort a file                     *" << endl;
-    cout << "* 2. Simulate one FIFO queue         *" << endl;
-    cout << "**************************************" << endl;
-
 
     JobList aList;
     do {
-        cout << "Input a command(0, 1, 2): ";
+        cout << endl << "**** Simulate FIFO Queues by SQF *****";
+        cout << endl << "* 0. Quit                            *";
+        cout << endl << "* 1. Sort a file                     *";
+        cout << endl << "* 2. Simulate one FIFO queue         *";
+        cout << endl << "**************************************";
+        cout << endl << "Input a command(0, 1, 2): ";
         cin >> cmd;
-
+        string fileName;
         if ( cmd == 1 ) {
-
-            if ( aList.getSorted() )
-                // cout << "success\n";
+            fileName.clear();
+            aList.setID();  // input fileID
+            fileName = "input" + aList.getID() +".txt"; // format: inputXXX.txt
+            if ( aList.getSorted( fileName ) )
                 cout << "\n" ;
             else {
+                cout << endl << "### " + fileName + " does not exist! ###";
                 continue;
             }
 
         }
         else if ( cmd == 2 ) {
-            aList.getAll();
+            if ( aList.getID().size() == 0 )
+                aList.setID();
+            fileName = "sorted" + aList.getID() + ".txt"; // format: sortedXXX.txt
+            if ( !aList.getAll( fileName ) ) {
+                cout << endl << "### " + fileName + " does not exist! ###";
+            }
 
         }
-        else
-            cout << "Command does not exist!" << endl;
+        else if ( cmd != 0 )
+            cout << endl << "Command does not exist!";
 
     } while ( cmd != 0 ) ;
 
