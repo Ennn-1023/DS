@@ -112,6 +112,7 @@ public:
                 outFile << list[i].OID << "\t" << list[i].arrival << "\t";
                 outFile << list[i].duration << "\t" << list[i].timeout << endl;
             }
+            outFile.close();
             End = clock();
             duration = double(End - Begin) / CLK_TCK;
 
@@ -126,6 +127,62 @@ public:
             cout << list[i].duration << "\t" << list[i].timeout << endl;
         }
     }
+};
+
+class JobQueue {
+private:
+    jobType* arrQueue;
+    int front;
+    int back;
+    int curSize;
+    int maxSize;
+public:
+    JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0) {
+    }
+    JobQueue(int size):maxSize(size), front(0), curSize(0) {
+        arrQueue = new jobType[maxSize];
+        back = maxSize - 1;
+    }
+    ~JobQueue() {
+        clear();
+    }
+    bool isEmpty() {
+        return curSize == 0;
+    }
+    bool isFull() {
+        return curSize == maxSize;
+    }
+    void enQueue( const jobType& newJob ) {
+        if ( !isFull() ) {
+            back = ( back + 1 ) % maxSize;
+            arrQueue[back] = newJob;
+            curSize++;
+        }
+        else {
+            cerr << "Failed to enQueue one item on full queue." << endl;
+        }
+    }
+    void getFront( jobType& firstJob ) {
+        firstJob = arrQueue[front];
+    }
+    void deQueue() {
+        if ( !isEmpty() ) {
+            front = (front + 1) % maxSize;
+            curSize--;
+        }
+        else {
+            cerr << "Failed to deQueue one item on empty queue." << endl;
+        }
+    }
+    void clear() {
+        delete [] arrQueue;
+        arrQueue = NULL;
+        maxSize = 0;
+        curSize = 0;
+        front = 0;
+        back = 0;
+    }
+
 };
 
 int main() {
