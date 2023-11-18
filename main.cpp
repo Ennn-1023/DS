@@ -204,6 +204,78 @@ public:
 
 };
 
+class AnsList {
+private:
+    struct abortType {
+        int OID;
+        int Abort;
+        int Delay;
+    };
+    struct doneType {
+        int OID;
+        int Departure;
+        int Delay;
+    };
+
+    vector<abortType> abortList;
+    vector<doneType> doneList;
+    float avgDelay;
+    float successRate;
+    int totalDelay;
+    void computeStats() {
+        int totalJob = abortList.size() + doneList.size();
+        avgDelay = float(totalDelay) / float(totalJob);
+        successRate = float ( doneList.size() ) / float(totalJob);
+    }
+
+public:
+    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0) {
+    }
+    ~AnsList() {
+        abortList.clear();
+        doneList.clear();
+    }
+    // void showAll();
+    void addAbortJob( int OID, int abort, int delay ) {
+        abortType newJob{ OID, abort, delay };
+        abortList.push_back(newJob);
+        totalDelay += delay;
+    }
+    void addDoneJob( int OID, int departure, int delay ) {
+        doneType newJob{ OID, departure, delay };
+        doneList.push_back(newJob);
+        totalDelay += delay;
+    }
+
+    void putAll( string fileName ) {
+        ofstream outFile;
+        outFile.open( fileName );
+        if ( outFile.is_open() ) {
+            // abortList
+            outFile << endl << "\t[Abort Jobs]";
+            outFile << endl << "\tOID\tAbort\tDelay";
+            for ( int i = 0; i < abortList.size(); i++ ) {
+                outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID;
+                outFile << "\t" << abortList[i].Abort << "\t" << abortList[i].Delay;
+            }
+            // doneList
+            outFile << endl << "\t[Jobs Done]";
+            outFile << endl << "\tOID\tDeparture\tDelay";
+            for ( int i = 0; i < doneList.size(); i++ ) {
+                outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID;
+                outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay;
+            }
+            outFile << endl << "[Average Delay]\t" << avgDelay << " ms";
+            outFile << endl << "[Success Rate]\t" << successRate << " %";
+
+            outFile.close();
+        }
+        else {
+            cerr << "Open output file error!" << endl;
+        }
+    }
+};
+
 int main() {
     int cmd = -1;
 
