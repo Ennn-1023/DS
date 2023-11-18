@@ -3,7 +3,13 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include<ctime>
+
 using namespace std;
+
+clock_t  Begin, End;
+double duration;
+
 struct jobType {
     int OID;
     int arrival;
@@ -24,6 +30,7 @@ private:
     vector<jobType> list;
     string fileID;
     void sortByArrival() {
+        Begin = clock();
         int n = list.size();
         for ( int stepLength = n/2; stepLength > 0;stepLength /= 2 ) {
             for ( int unsorted = stepLength; unsorted < n; unsorted++ ) {
@@ -36,6 +43,10 @@ private:
                 list[loc+stepLength] = nextJob;
             }
         }
+        End = clock();
+        duration = double(End - Begin) / CLK_TCK;
+
+        cout << "Sorting data:" << duration << "ms"<<endl;
     }
 
 public:
@@ -46,6 +57,7 @@ public:
         ifstream in;
         fileID = fileNo;
         string fileName = "input" + fileNo + ".txt";
+        Begin = clock();
         in.open(fileName.c_str());
 
         if (!in.is_open()) {
@@ -64,6 +76,10 @@ public:
         }
 
         in.close();
+        End = clock();
+        duration = double(End - Begin) / CLK_TCK;
+
+        cout << "Reading data:" << duration << "ms"<<endl;
         return true;
     }
 
@@ -75,6 +91,7 @@ public:
         ofstream outFile;
         string fileName = "sorted" + fileID + ".txt";
         // write file
+        Begin = clock();
         outFile.open(fileName.c_str());
         if (!outFile.is_open())
             return false;
@@ -84,6 +101,10 @@ public:
                 outFile << list[i].OID << "\t" << list[i].arrival << "\t";
                 outFile << list[i].duration << "\t" << list[i].timeout << endl;
             }
+            End = clock();
+            duration = double(End - Begin) / CLK_TCK;
+
+            cout << "Writing data:" << duration << "ms"<<endl;
             return true;
         }
     }
@@ -113,7 +134,8 @@ int main() {
         if ( cmd == 1 ) {
 
             if ( aList.getSorted() )
-                cout << "success\n";
+                // cout << "success\n";
+                cout << "\n" ;
             else {
                 continue;
             }
