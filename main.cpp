@@ -43,10 +43,7 @@ private:
             }
         }
     }
-    void reset() {
-        list.clear();
-        fileID.clear();
-    }
+
     void writeFile( string fileName ) {
         ofstream outFile;
         outFile.open(fileName.c_str());
@@ -55,7 +52,7 @@ private:
         else {
             outFile << "OID\tArrival\tDuration\tTimeOut" << endl;
 
-            for (int i = 0; i < list.size(); i++) {
+            for ( int i = 0; i < list.size(); i++ ) {
                 outFile << list[i].OID << "\t" << list[i].arrival << "\t";
                 outFile << list[i].duration << "\t" << list[i].timeout << endl;
             }
@@ -70,6 +67,17 @@ public:
     }
     ~JobList() {
         reset();
+    }
+
+    void getNextJob( jobType& firstJob) {
+        // delete first item in list
+        if ( !list.empty() ) {
+            firstJob = list[0];
+            list.erase(list.begin());
+        }
+        else {
+            cerr << "Pop from empty jobList!" << endl;
+        }
     }
 
     bool getAll( string fileName ) {
@@ -122,12 +130,18 @@ public:
         writeTime = End - Begin;
 
         system("PAUSE");
+
+        // show time
         cout << endl << "Reading data: " << readTime << " clocks (" << readTime << ".00 ms).";
         cout << endl << "Sorting data: " << sortTime << " clocks (" <<sortTime << ".00 ms).";
         cout << endl << "Writing data: " << writeTime << " clocks (" << writeTime << ".00 ms).";
         cout << endl;
         cout << endl << "see " + fileName << endl;
         return true;
+    }
+    void reset() {
+        list.clear();
+        fileID.clear();
     }
     void show() {
         cout << "\tOID\tArrival\tDuration\tTimeOut";
@@ -164,6 +178,9 @@ public:
     }
     ~JobQueue() {
         clear();
+    }
+    int length() {
+        return curSize;
     }
     bool isEmpty() {
         return curSize == 0;
@@ -229,9 +246,13 @@ private:
     }
 
 public:
-    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0) {
+    int availableTime;
+    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), availableTime(0) {
     }
     ~AnsList() {
+        clear();
+    }
+    void clear() {
         abortList.clear();
         doneList.clear();
     }
@@ -275,6 +296,42 @@ public:
         }
     }
 };
+
+class Simulation {
+private:
+    JobList jobList;
+    AnsList ansList;
+    vector<JobQueue> nQueue;
+    int queueNums;
+
+public:
+    Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), queueNums(numOfQueue) {
+        // queue size 3
+        JobQueue temp(3);
+        // create n queues
+        for ( int i = 0; i < queueNums; i++ ) {
+            nQueue.push_back(temp);
+        }
+
+    }
+    ~Simulation() {
+        clear();
+    }
+    void clear() {
+        jobList.reset();
+        ansList.clear();
+        nQueue.clear();
+    }
+
+
+};
+
+
+void simulating( const JobList& jobs ) {
+    int numOfQueue = 1;
+    Simulation simulation( jobs, numOfQueue );
+
+}
 
 int main() {
     int cmd = -1;
