@@ -68,16 +68,27 @@ public:
     ~JobList() {
         reset();
     }
-
+    bool isEmpty() const {
+        return list.empty();
+    }
     void getNextJob( jobType& firstJob) {
-        // delete first item in list
+        // get the first job in list but not delete it.
         if ( !list.empty() ) {
             firstJob = list[0];
-            list.erase(list.begin());
+
         }
         else {
-            cerr << "Pop from empty jobList!" << endl;
+            cerr << "Get from empty jobList!" << endl;
         }
+    }
+    void delOneJob() {
+        /*
+         * delete the first item in list
+         */
+        if ( !list.empty() )
+            list.erase(list.begin());
+        else
+            cerr << "Pop from empty jobList!" << endl;
     }
 
     bool getAll( string fileName ) {
@@ -170,7 +181,8 @@ private:
     int curSize;
     int maxSize;
 public:
-    JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0) {
+    int availableTime;
+    JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0), availableTime(0) {
     }
     JobQueue(int size):maxSize(size), front(0), curSize(0) {
         arrQueue = new jobType[maxSize];
@@ -246,7 +258,6 @@ private:
     }
 
 public:
-    int availableTime;
     AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), availableTime(0) {
     }
     ~AnsList() {
@@ -304,6 +315,19 @@ private:
     vector<JobQueue> nQueue;
     int queueNums;
 
+    void updateQueue( int systemTime ) {
+        // update each queue
+        for ( int i = 0; i < queueNums; i++ ) {
+            // check jobs in queue[i]
+            int j = 0;
+            // check executing job is done or timeout or not
+            if ( systemTime >= nQueue[i].)
+            for ( j = 1; j < nQueue[i].length(); j++ ) {
+
+            }
+        }
+    }
+
 public:
     Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), queueNums(numOfQueue) {
         // queue size 3
@@ -323,15 +347,22 @@ public:
         nQueue.clear();
     }
 
+    void simulate() {
+        int systemTime = 0;
+        jobType nextJob; // the job to push into queue.
+        while ( !jobList.isEmpty() ) {
+            jobList.getNextJob( nextJob );
+            // update all queues, check jobs done or should be aborted or not
+            updateQueue( systemTime );
+            // choose one queue to push nextJob in.
+
+            // otherwise, if there is no queue available, abort this job
+        }
+    }
+
 
 };
 
-
-void simulating( const JobList& jobs ) {
-    int numOfQueue = 1;
-    Simulation simulation( jobs, numOfQueue );
-
-}
 
 int main() {
     int cmd = -1;
@@ -359,11 +390,16 @@ int main() {
 
         }
         else if ( cmd == 2 ) {
-            if ( aList.getID().size() == 0 )
+            if ( aList.getID().empty() )
                 aList.setID();
             fileName = "sorted" + aList.getID() + ".txt"; // format: sortedXXX.txt
             if ( !aList.getAll( fileName ) ) {
                 cout << endl << "### " + fileName + " does not exist! ###";
+            }
+            // simulate
+            else {
+                Simulation simulation(aList, 1);
+                simulation.simulate();
             }
 
         }
