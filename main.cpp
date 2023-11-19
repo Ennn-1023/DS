@@ -181,10 +181,9 @@ private:
     int curSize;
     int maxSize;
 public:
-    int availableTime;
-    JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0), availableTime(0) {
+    JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0) {
     }
-    JobQueue(int size):maxSize(size), front(0), curSize(0), availableTime(0) {
+    JobQueue(int size):maxSize(size), front(0), curSize(0) {
         arrQueue = new jobType[maxSize];
         back = maxSize - 1;
     }
@@ -320,34 +319,126 @@ public:
 
 class Simulation {
 private:
-    struct ExecuteJob {
-        int startTime;
+    struct CPU {
         int OID;
-
+        int delay;
+        int leavingTime; // the time when current job will leave or previous job was leaving
+        int startTime; // the time current job was started to be processed
+        bool done; // the job will be done or aborted
+        bool isFree; // if the CPU is busy
     };
     JobList jobList; // the jobs
     AnsList ansList; // output stats
     vector<JobQueue> nQueue; // waiting job queues for each cpu
-    jobType* executingJob; // an array for n cpu
-    int cpuNums; // number of total cpu
+    CPU* nStatOfCPU; // an array for n cpu
+    int numOfCPU; // number of total cpu
 
-    void updateQueue( int cpuTime ) {
-        jobType jobToCheck;
-        // update each queue
-        for ( int i = 0; i < cpuNums; i++ ) {
-            for (int j = 0; j < nQueue[i].length(); j++ ) {
+    void updateQueue( int time ) {
+        // update each cpu to be the status at input time;
+
+        for (int i = 0; i < numOfCPU; i++ ) {
+
+            // if the executing job is finished when time = input time, update CPU status
+            // only if the cpu have job to do.
+            while ( time >= nStatOfCPU[i].leavingTime && !nQueue[i].isEmpty() ) {
+
+                // determine the job is done or aborted when there is job in cpu
+
+                if (!nStatOfCPU[i].isFree){ // the CPU has a job to output
+                    if (nStatOfCPU[i].done) // done
+                        ansList.addDoneJob(nStatOfCPU[i].OID, nStatOfCPU[i].leavingTime, nStatOfCPU[i].delay);
+                    else // abort
+                        ansList.addAbortJob(nStatOfCPU[i].OID, nStatOfCPU[i].leavingTime, nStatOfCPU[i].delay);
+                    // current job is done
+                    nStatOfCPU[i].isFree = true;
+                }
+
+                // get a waiting job to process or there is no job to do
+                if ( processNextJob( i ) )
+                    nStatOfCPU[i].isFree;
+
+
+
+            }
+        } // end of for, has updated each CPU
+    }
+    bool processNextJob( int nthCPU ) {
+        // return true when set the CPU status by a new job successfully
+        // otherwise, return false when there is no job in queue to do
+
+        // the waiting job in queue front
+        jobType aJob;
+        while ( !nQueue[nthCPU].isEmpty() ) {
+            nQueue[nthCPU].getFront( aJob );
+            // delete the front job from queue
+            nQueue[nthCPU].deQueue();
+            // timeout when pop the job from queue, abort the job
+            if ( aJob.timeout <= nStatOfCPU[nthCPU].leavingTime ) {
+                ansList.addAbortJob(aJob.OID, nStatOfCPU[nthCPU].leavingTime, nStatOfCPU[nthCPU].delay );
+            }
+            else { // process the waiting job
+                setCPU(nthCPU, aJob);
+                return true; // successfully changed the CPU status
+            }
+            // delete the processing job from queue
+
+        }
+        // there is no job to be push into CPU;
+        return false;
+    }
+    void setCPU(int nthCPU, const jobType& newJob ) {
+        // set the executing job information, include it will be done or aborted
+
+        nStatOfCPU[nthCPU].OID = newJob.OID;
+        nStatOfCPU[nthCPU].isFree = false;
+
+        // set the start time
+        if ( nStatOfCPU[nthCPU].leavingTime < newJob.arrival ) // no delay
+            nStatOfCPU[nthCPU].startTime = newJob.arrival;
+        else // start when previous job is done
+            nStatOfCPU[nthCPU].startTime = nStatOfCPU[nthCPU].leavingTime;
+
+
+        // check the job will be done or aborted when leaving
+        nStatOfCPU[nthCPU].leavingTime = nStatOfCPU[nthCPU].startTime + newJob.duration;
+
+        // if the done time exceed timeout, set the leaving time to be the abort time
+        if (nStatOfCPU[nthCPU].leavingTime > newJob.timeout) {
+            nStatOfCPU[nthCPU].leavingTime = newJob.timeout;
+            nStatOfCPU[nthCPU].done = false;
+            nStatOfCPU[nthCPU].delay = nStatOfCPU[nthCPU].leavingTime - newJob.arrival;
+        }
+        else { // done
+            nStatOfCPU[nthCPU].done = true;
+            nStatOfCPU[nthCPU].delay = nStatOfCPU[nthCPU].leavingTime - (newJob.arrival + newJob.duration);
+        }
+
+    }
+    void finishQueue() {
+        // finish all the jobs in queues
+
+        // 處理剩下的jobs in queue
+
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            while ( nQueue[i].isEmpty() ) {
 
             }
         }
+
     }
 
 public:
-    Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), cpuNums(numOfQueue) {
+    Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), numOfCPU(numOfQueue) {
         // queue size 3
         JobQueue temp(3);
-        // create n queues
-        for (int i = 0; i < cpuNums; i++ ) {
+
+        nStatOfCPU = new CPU[numOfCPU];
+        // create n CPU work space
+        for (int i = 0; i < numOfCPU; i++ ) {
             nQueue.push_back(temp);
+            nStatOfCPU[i].leavingTime = 0;
+            nStatOfCPU[i].startTime = 0;
+            nStatOfCPU[i].isFree = true;
         }
 
     }
@@ -361,19 +452,39 @@ public:
     }
 
     void simulate() {
-        int systemTime = 0;
+        int arrival; // the job arriving time
         jobType nextJob; // the job to push into queue.
+        bool processed; // whether the job has been processed
+        int systemTime;
+        // keep processing the jobs in jobList until it is empty
         while ( !jobList.isEmpty() ) {
+            processed = false;
             jobList.getNextJob( nextJob );
-            // update all queues, check jobs done or should be aborted or not
-            updateQueue( systemTime );
-            // choose one queue to push nextJob in.
+            // according to the next job, which should be processed, to update all CPU
+            systemTime = nextJob.arrival;
 
+            updateQueue(nextJob.arrival);
+
+            int nthCpu = chooseOneCPU(nextJob.arrival);
+            // choose one queue to push nextJob in.
             // otherwise, if there is no queue available, abort this job
+            if ( nthCpu != -1 )
+                nQueue[nthCpu].enQueue(nextJob);
+            else // abort the job immediately when it arrived
+                ansList.addAbortJob(nextJob.OID, nextJob.timeout, 0);
 
         }
-    }
 
+        // finish the job in queues
+
+    }
+    int chooseOneCPU(int arrivalTime ) {
+        for (int i = 0; i < numOfCPU; i++ ) {
+            if (nStatOfCPU[i].leavingTime == 0 ) {
+
+            }
+        }
+    }
 
 };
 
