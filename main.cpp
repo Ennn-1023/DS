@@ -184,12 +184,22 @@ public:
     int availableTime;
     JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0), availableTime(0) {
     }
-    JobQueue(int size):maxSize(size), front(0), curSize(0) {
+    JobQueue(int size):maxSize(size), front(0), curSize(0), availableTime(0) {
         arrQueue = new jobType[maxSize];
         back = maxSize - 1;
     }
     ~JobQueue() {
         clear();
+    }
+    int getTimeOut( int index ) {
+        if ( index >= 0 && index < length() ) {
+            // exact index in queue
+            index = (front + index) % maxSize;
+            return arrQueue[index].timeout;
+        }
+        else {
+            cerr << "Index error on Queue!" << endl;
+        }
     }
     int length() {
         return curSize;
@@ -258,7 +268,7 @@ private:
     }
 
 public:
-    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), availableTime(0) {
+    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0) {
     }
     ~AnsList() {
         clear();
@@ -310,30 +320,33 @@ public:
 
 class Simulation {
 private:
-    JobList jobList;
-    AnsList ansList;
-    vector<JobQueue> nQueue;
-    int queueNums;
+    struct ExecuteJob {
+        int startTime;
+        int OID;
 
-    void updateQueue( int systemTime ) {
+    };
+    JobList jobList; // the jobs
+    AnsList ansList; // output stats
+    vector<JobQueue> nQueue; // waiting job queues for each cpu
+    jobType* executingJob; // an array for n cpu
+    int cpuNums; // number of total cpu
+
+    void updateQueue( int cpuTime ) {
+        jobType jobToCheck;
         // update each queue
-        for ( int i = 0; i < queueNums; i++ ) {
-            // check jobs in queue[i]
-            int j = 0;
-            // check executing job is done or timeout or not
-            if ( systemTime >= nQueue[i].)
-            for ( j = 1; j < nQueue[i].length(); j++ ) {
+        for ( int i = 0; i < cpuNums; i++ ) {
+            for (int j = 0; j < nQueue[i].length(); j++ ) {
 
             }
         }
     }
 
 public:
-    Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), queueNums(numOfQueue) {
+    Simulation( const JobList& jobs, int numOfQueue ): jobList(jobs), cpuNums(numOfQueue) {
         // queue size 3
         JobQueue temp(3);
         // create n queues
-        for ( int i = 0; i < queueNums; i++ ) {
+        for (int i = 0; i < cpuNums; i++ ) {
             nQueue.push_back(temp);
         }
 
@@ -357,6 +370,7 @@ public:
             // choose one queue to push nextJob in.
 
             // otherwise, if there is no queue available, abort this job
+
         }
     }
 
