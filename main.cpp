@@ -140,7 +140,7 @@ public:
         End = clock();
         writeTime = End - Begin;
 
-        system("PAUSE");
+        // system("PAUSE");
 
         // show time
         cout << endl << "Reading data: " << readTime << " clocks (" << readTime << ".00 ms).";
@@ -275,8 +275,6 @@ private:
 
 public:
     AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), abortList(0), doneList(0) {
-        cout << endl << "abortList: " << abortList.max_size();
-        cout << endl << "donetList: " << doneList.max_size();
     }
     ~AnsList() {
         clear();
@@ -287,8 +285,8 @@ public:
     }
     // void showAll();
     void addAbortJob( int OID, int abort, int delay ) {
-        abortType newJob{ OID, abort, delay };
-        cout << endl << abortList.max_size();
+        abortType newJob = { OID, abort, delay };
+
         abortList.push_back( newJob );
         totalDelay += delay;
     }
@@ -296,7 +294,7 @@ public:
 
 
     void addDoneJob( int OID, int departure, int delay ) {
-        doneType newJob{ OID, departure, delay };
+        doneType newJob = { OID, departure, delay };
         doneList.push_back(newJob);
         totalDelay += delay;
     }
@@ -353,6 +351,7 @@ private:
 
             // if the executing job is finished when time = input time, update CPUType status
             // only if the cpu have job to do.
+
             while ( time >= nStatOfCPU[i].leavingTime && !nQueue[i].isEmpty() ) {
 
                 // determine the job is done or aborted when there is job in cpu
