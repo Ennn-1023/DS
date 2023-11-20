@@ -383,7 +383,7 @@ private:
             nQueue[nthCPU].getFront( aJob );
             // delete the front job from queue
             nQueue[nthCPU].deQueue();
-            // timeout when pop the job from queue, abort the job
+            // if timeout when pop the job from queue, abort the job
             if ( aJob.timeout <= nStatOfCPU[nthCPU].leavingTime ) {
                 ansList.addAbortJob(aJob.OID, nStatOfCPU[nthCPU].leavingTime, nStatOfCPU[nthCPU].delay );
             }
@@ -398,15 +398,15 @@ private:
         return false;
     }
     void setCPU(int nthCPU, const jobType& newJob ) {
-        // set the executing job information, include it will be done or aborted
+        // set the executing job information, includes it will be done or aborted
 
         nStatOfCPU[nthCPU].OID = newJob.OID;
         nStatOfCPU[nthCPU].isFree = false;
 
         // set the start time
-        if ( nStatOfCPU[nthCPU].leavingTime < newJob.arrival ) // no delay
+        if ( nStatOfCPU[nthCPU].leavingTime < newJob.arrival ) // immediately processed next job
             nStatOfCPU[nthCPU].startTime = newJob.arrival;
-        else // start when previous job is done
+        else // wait until previous job is done
             nStatOfCPU[nthCPU].startTime = nStatOfCPU[nthCPU].leavingTime;
 
 
@@ -475,6 +475,7 @@ public:
             nStatOfCPU[i].leavingTime = 0;
             nStatOfCPU[i].startTime = 0;
             nStatOfCPU[i].isFree = true;
+            nStatOfCPU[i].done = true;
         }
 
     }
