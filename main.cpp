@@ -183,6 +183,13 @@ private:
 public:
     JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0) {
     }
+    JobQueue( const JobQueue& aQueue ):front(aQueue.front), back(aQueue.back)
+    ,curSize(aQueue.curSize), maxSize(aQueue.maxSize) {
+        arrQueue = new jobType[maxSize];
+        for ( int i = 0; i < curSize; i++ ) {
+            arrQueue[i] = aQueue.arrQueue[i];
+        }
+    }
     JobQueue(int size):maxSize(size), front(0), curSize(0) {
         arrQueue = new jobType[maxSize];
         back = maxSize - 1;
@@ -267,9 +274,7 @@ private:
     }
 
 public:
-    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0) {
-        abortList.clear();
-        doneList.clear();
+    AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), abortList(0), doneList(0) {
         cout << endl << "abortList: " << abortList.max_size();
         cout << endl << "donetList: " << doneList.max_size();
     }
@@ -284,7 +289,6 @@ public:
 
     void addAbortJob( int OID, int abort, int delay ) {
         abortType newJob{ OID, abort, delay };
-        int a = 0;
         cout << endl << abortList.max_size();
         abortList.push_back( newJob );
         totalDelay += delay;
@@ -329,18 +333,18 @@ public:
 
 class Simulation {
 private:
-    struct CPU {
+    struct CPUType {
         int OID;
         int delay;
         int leavingTime; // the time when current job will leave or previous job was leaving
         int startTime; // the time current job was started to be processed
         bool done; // the job will be done or aborted
-        bool isFree; // if the CPU is busy
+        bool isFree; // if the CPUType is busy
     };
     JobList jobList; // the jobs
     AnsList ansList; // output stats
     vector<JobQueue> nQueue; // waiting job queues for each cpu
-    CPU* nStatOfCPU; // an array for n cpu
+    CPUType* nStatOfCPU; // an array for n cpu
     int numOfCPU; // number of total cpu
     int queueSize;
     void updateQueue( int time ) {
@@ -348,13 +352,13 @@ private:
 
         for (int i = 0; i < numOfCPU; i++ ) {
 
-            // if the executing job is finished when time = input time, update CPU status
+            // if the executing job is finished when time = input time, update CPUType status
             // only if the cpu have job to do.
             while ( time >= nStatOfCPU[i].leavingTime && !nQueue[i].isEmpty() ) {
 
                 // determine the job is done or aborted when there is job in cpu
 
-                if (!nStatOfCPU[i].isFree){ // the CPU has a job to output
+                if (!nStatOfCPU[i].isFree){ // the CPUType has a job to output
                     if (nStatOfCPU[i].done) // done
                         ansList.addDoneJob(nStatOfCPU[i].OID, nStatOfCPU[i].leavingTime, nStatOfCPU[i].delay);
                     else // abort
@@ -369,10 +373,10 @@ private:
 
 
             }
-        } // end of for, has updated each CPU
+        } // end of for, has updated each CPUType
     }
     bool processNextJob( int nthCPU ) {
-        // return true when set the CPU status by a new job successfully
+        // return true when set the CPUType status by a new job successfully
         // otherwise, return false when there is no job in queue to do
 
         // the waiting job in queue front
@@ -387,12 +391,12 @@ private:
             }
             else { // process the waiting job
                 setCPU(nthCPU, aJob);
-                return true; // successfully changed the CPU status
+                return true; // successfully changed the CPUType status
             }
             // delete the processing job from queue
 
         }
-        // there is no job to be push into CPU;
+        // there is no job to be push into CPUType;
         return false;
     }
     void setCPU(int nthCPU, const jobType& newJob ) {
@@ -424,13 +428,13 @@ private:
 
     }
     bool checkFinishOrNot() {
-        // check if there is any job in CPU
+        // check if there is any job in CPUType
         for ( int i = 0; i < numOfCPU; i++ ) {
             if ( !nStatOfCPU[i].isFree ) {
                 return false;
             }
         }
-        // all CPU is free
+        // all CPUType is free
         return true;
     }
     void finishQueue() {
@@ -465,10 +469,11 @@ public:
 
         JobQueue temp( queueSize );
 
-        nStatOfCPU = new CPU[numOfCPU];
-        // create n CPU work space
+        nStatOfCPU = new CPUType[numOfCPU];
+        // create n CPUType work space
         for (int i = 0; i < numOfCPU; i++ ) {
-            nQueue.push_back(temp);
+            nQueue.push_back( temp );
+            nStatOfCPU[i].OID = 0;
             nStatOfCPU[i].leavingTime = 0;
             nStatOfCPU[i].startTime = 0;
             nStatOfCPU[i].isFree = true;
@@ -482,6 +487,7 @@ public:
         jobList.reset();
         ansList.clear();
         nQueue.clear();
+        delete[] nStatOfCPU;
     }
 
     void simulate( AnsList& answer ) {
@@ -491,10 +497,10 @@ public:
         bool processed; // whether the job has been processed
         // keep processing the jobs in jobList until it is empty
         while ( !jobList.isEmpty() ) {
-            processed = false;
+            // processed = false;
             jobList.getNextJob( nextJob );
             jobList.delOneJob();
-            // according to the next job, which should be processed, to update all CPU
+            // according to the next job, which should be processed, to update all CPUType
 
             updateQueue( nextJob.arrival );
 
@@ -505,7 +511,6 @@ public:
                 nQueue[nthCpu].enQueue(nextJob);
             else // abort the job immediately when it arrived
                 ansList.addAbortJob(nextJob.OID, nextJob.timeout, 0);
-
         }
 
         // finish the job in queues
@@ -517,13 +522,13 @@ public:
     }
     int chooseOneCPU(int arrivalTime ) {
 
-        // the first idle CPU will have a highest priority.
+        // the first idle CPUType will have a highest priority.
         for (int i = 0; i < numOfCPU; i++ ) {
             if ( nStatOfCPU[i].isFree ) {
                 return i;
             }
         }
-        // no idle CPU
+        // no idle CPUType
         // choose the shortest one
         int shortest = 0; // assume the shortest one is shortest
         for (int i = 1; i < numOfCPU; i++ ) {
@@ -536,7 +541,7 @@ public:
         // the shortest is full
         if ( nQueue[shortest].isFull() )
             return -1;
-        else // the shortest CPU is available
+        else // the shortest CPUType is available
             return shortest;
     }
 
@@ -578,13 +583,12 @@ int main() {
             // simulate
             else {
                 cout << endl << "Simulating...";
-                AnsList ansList;
+                AnsList answer;
                 Simulation simulation(aList, 1, 3); // jobList, numOfCPU, queueSize
-                simulation.simulate( ansList );
+                simulation.simulate( answer );
                 fileName = "output" + aList.getID() + ".txt";
-                ansList.putAll( fileName );
+                answer.putAll( fileName );
             }
-
         }
         else if ( cmd != 0 )
             cout << endl << "Command does not exist!";
