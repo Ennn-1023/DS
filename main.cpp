@@ -286,7 +286,6 @@ public:
         doneList.clear();
     }
     // void showAll();
-
     void addAbortJob( int OID, int abort, int delay ) {
         abortType newJob{ OID, abort, delay };
         cout << endl << abortList.max_size();
