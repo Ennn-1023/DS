@@ -205,6 +205,7 @@ public:
         }
         else {
             cerr << "Index error on Queue!" << endl;
+            return -1;
         }
     }
     int length() {
@@ -317,12 +318,12 @@ public:
                 outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID;
                 outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay;
             }
-            outFile << endl << "[Average Delay]\t" << avgDelay << " ms";
-            // outFile << endl << "[Success Rate]\t" << successRate << " %";
 
-            char rate[7];
+            char delay[7], rate[7];
+            sprintf(rate, "%.2f", avgDelay);
             sprintf(rate, "%.2f", successRate);
             outFile << endl << "[Success Rate]\t" << rate << " %";
+            outFile << endl << "[Average Delay]\t" << avgDelay << " ms\n";
             outFile.close();
         }
         else {
@@ -502,7 +503,6 @@ public:
 
     void simulate( AnsList& answer ) {
 
-        int arrival; // the job arriving time
         jobType nextJob; // the job to push into queue.
         bool processed; // whether the job has been processed
         // keep processing the jobs in jobList until it is empty
@@ -596,13 +596,14 @@ int main() {
             else {
                 aList.reset();
                 aList.getAll( fileName );
-                cout << endl << "Simulating...";
+                cout << endl << "The simulation is running...";
                 AnsList answer;
                 Simulation simulation(aList, 1, 3); // jobList, numOfCPU, queueSize
                 simulation.simulate( answer );
                 fileName = "output" + aList.getID() + ".txt";
                 answer.computeStats();
                 answer.putAll( fileName );
+                cout << endl << "See " + fileName;
             }
         }
         else if ( cmd != 0 )

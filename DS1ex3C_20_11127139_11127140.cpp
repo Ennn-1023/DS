@@ -305,7 +305,7 @@ public:
         outFile.open( fileName );
         if ( outFile.is_open() ) {
             // abortList
-            outFile << endl << "\t[Abort Jobs]";
+            outFile << "\t[Abort Jobs]";
             outFile << endl << "\tOID\tAbort\tDelay";
             for ( int i = 0; i < abortList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID;
@@ -318,12 +318,12 @@ public:
                 outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID;
                 outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay;
             }
-            outFile << endl << "[Average Delay]\t" << avgDelay << " ms";
-            // outFile << endl << "[Success Rate]\t" << successRate << " %";
 
-            char rate[7];
+            char delay[7], rate[7];
+            sprintf( delay, "%.2f", avgDelay);
             sprintf(rate, "%.2f", successRate);
-            outFile << endl << "[Success Rate]\t" << rate << " %";
+            outFile << endl << "[Average Delay]\t" << delay << " ms";
+            outFile << endl << "[Success Rate]\t" << rate << " %\n";
             outFile.close();
         }
         else {
@@ -598,17 +598,19 @@ int main() {
                 aList.reset();
                 aList.getAll( fileName );
                 int numOfCpu, sizeOfQueue ;
-                cout << "Input num of cpu: "  ;
+                cout << endl << "Input num of cpu: "  ;
                 cin >> numOfCpu ;
-                cout << "Input size of queue: "  ;
+                cout << endl << "Input size of queue: "  ;
                 cin >> sizeOfQueue ;
-                cout << endl << "Simulating...";
+                cout << endl << "The simulation is running...";
+
                 AnsList answer;
                 Simulation simulation(aList, numOfCpu, sizeOfQueue); // jobList, numOfCPU, queueSize
                 simulation.simulate( answer );
                 fileName = "outputC" + aList.getID() + ".txt";
                 answer.computeStats();
                 answer.putAll( fileName );
+                cout << endl << "See " + fileName;
             }
         }
         else if ( cmd != 0 )
