@@ -48,7 +48,7 @@ private:
         ofstream outFile;
         outFile.open(fileName.c_str());
         if (!outFile.is_open())
-            cout << "Error\n";
+            cerr << "Error\n";
         else {
             outFile << "OID\tArrival\tDuration\tTimeOut" << endl;
 
@@ -152,7 +152,6 @@ public:
     }
     void reset() {
         list.clear();
-        fileID.clear();
     }
     void show() {
         cout << "\tOID\tArrival\tDuration\tTimeOut";
@@ -186,7 +185,7 @@ public:
     JobQueue( const JobQueue& aQueue ):front(aQueue.front), back(aQueue.back)
     ,curSize(aQueue.curSize), maxSize(aQueue.maxSize) {
         arrQueue = new jobType[maxSize];
-        for ( int i = 0; i < curSize; i++ ) {
+        for ( int i = 0; i < maxSize; i++ ) {
             arrQueue[i] = aQueue.arrQueue[i];
         }
     }
@@ -267,11 +266,6 @@ private:
     float avgDelay;
     float successRate;
     int totalDelay;
-    void computeStats() {
-        int totalJob = abortList.size() + doneList.size();
-        avgDelay = float(totalDelay) / float(totalJob);
-        successRate = float ( doneList.size() ) / float(totalJob);
-    }
 
 public:
     AnsList():avgDelay(0.0), successRate(0.0), totalDelay(0), abortList(0), doneList(0) {
@@ -298,7 +292,12 @@ public:
         doneList.push_back(newJob);
         totalDelay += delay;
     }
+    void computeStats() {
+        int totalJob = abortList.size() + doneList.size();
+        avgDelay = float(totalDelay) / float(totalJob);
+        successRate = (float ( doneList.size() ) / float(totalJob)) * 100;
 
+    }
     void putAll( string fileName ) {
         ofstream outFile;
         outFile.open( fileName );
@@ -318,8 +317,11 @@ public:
                 outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay;
             }
             outFile << endl << "[Average Delay]\t" << avgDelay << " ms";
-            outFile << endl << "[Success Rate]\t" << successRate << " %";
+            // outFile << endl << "[Success Rate]\t" << successRate << " %";
 
+            char rate[7];
+            sprintf(rate, "%.2f", successRate);
+            outFile << endl << "[Success Rate]\t" << rate << " %";
             outFile.close();
         }
         else {
@@ -352,24 +354,20 @@ private:
             // if the executing job is finished when time = input time, update CPUType status
             // only if the cpu have job to do.
 
-            while ( time >= nStatOfCPU[i].leavingTime && !nQueue[i].isEmpty() ) {
+
+            while ( time >= nStatOfCPU[i].leavingTime ) {
 
                 // determine the job is done or aborted when there is job in cpu
+                if ( !nStatOfCPU[i].isFree)
+                    finishOneJob( i );
 
-                if (!nStatOfCPU[i].isFree){ // the CPUType has a job to output
-                    if (nStatOfCPU[i].done) // done
-                        ansList.addDoneJob(nStatOfCPU[i].OID, nStatOfCPU[i].leavingTime, nStatOfCPU[i].delay);
-                    else // abort
-                        ansList.addAbortJob(nStatOfCPU[i].OID, nStatOfCPU[i].leavingTime, nStatOfCPU[i].delay);
-                    // current job is done
-                    nStatOfCPU[i].isFree = true;
-                }
 
                 // get a waiting job to process or there is no job to do
                 if ( !processNextJob( i ) )
                     nStatOfCPU[i].isFree = true;
 
-
+                if ( nQueue[i].isEmpty() )
+                    break;
             }
         } // end of for, has updated each CPUType
     }
@@ -428,9 +426,8 @@ private:
     bool checkFinishOrNot() {
         // check if there is any job in CPUType
         for ( int i = 0; i < numOfCPU; i++ ) {
-            if ( !nStatOfCPU[i].isFree ) {
+            if ( !nStatOfCPU[i].isFree )
                 return false;
-            }
         }
         // all CPUType is free
         return true;
@@ -453,12 +450,25 @@ private:
                     time = nStatOfCPU[i].leavingTime;
             }
             // update by the time
+
             updateQueue( time );
 
-            time = -1;
+            // time = -1;
             done = checkFinishOrNot();
         }
-
+    }
+    void finishOneJob( int nth ) {
+        if ( !nStatOfCPU[nth].isFree ){ // the CPUType has a job to output
+            if (nStatOfCPU[nth].done) // done
+                ansList.addDoneJob(nStatOfCPU[nth].OID, nStatOfCPU[nth].leavingTime, nStatOfCPU[nth].delay);
+            else // abort
+                ansList.addAbortJob(nStatOfCPU[nth].OID, nStatOfCPU[nth].leavingTime, nStatOfCPU[nth].delay);
+            // current job is done
+            nStatOfCPU[nth].isFree = true;
+        }
+        else {
+            cerr << "No Job to be done when finishOneJob()" << endl;
+        }
     }
 
 public:
@@ -509,7 +519,7 @@ public:
             if ( nthCpu != -1 )
                 nQueue[nthCpu].enQueue(nextJob);
             else // abort the job immediately when it arrived
-                ansList.addAbortJob(nextJob.OID, nextJob.timeout, 0);
+                ansList.addAbortJob(nextJob.OID, nextJob.arrival, 0);
         }
 
         // finish the job in queues
@@ -559,9 +569,10 @@ int main() {
         cout << endl << "**************************************";
         cout << endl << "Input a command(0, 1, 2): ";
         cin >> cmd;
-        string fileName;
+        string fileName, id;
         if ( cmd == 1 ) {
             fileName.clear();
+            aList.reset();
             aList.setID();  // input fileID
             fileName = "input" + aList.getID() +".txt"; // format: inputXXX.txt
             if ( aList.getSorted( fileName ) )
@@ -576,16 +587,20 @@ int main() {
             if ( aList.getID().empty() )
                 aList.setID();
             fileName = "sorted" + aList.getID() + ".txt"; // format: sortedXXX.txt
+
             if ( !aList.getAll( fileName ) ) {
                 cout << endl << "### " + fileName + " does not exist! ###";
             }
             // simulate
             else {
+                aList.reset();
+                aList.getAll( fileName );
                 cout << endl << "Simulating...";
                 AnsList answer;
                 Simulation simulation(aList, 1, 3); // jobList, numOfCPU, queueSize
                 simulation.simulate( answer );
                 fileName = "output" + aList.getID() + ".txt";
+                answer.computeStats();
                 answer.putAll( fileName );
             }
         }
