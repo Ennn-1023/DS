@@ -183,7 +183,7 @@ public:
     JobQueue():arrQueue(NULL), front(0), back(0), curSize(0), maxSize(0) {
     }
     JobQueue( const JobQueue& aQueue ):front(aQueue.front), back(aQueue.back)
-    ,curSize(aQueue.curSize), maxSize(aQueue.maxSize) {
+            ,curSize(aQueue.curSize), maxSize(aQueue.maxSize) {
         arrQueue = new jobType[maxSize];
         for ( int i = 0; i < maxSize; i++ ) {
             arrQueue[i] = aQueue.arrQueue[i];
@@ -383,7 +383,7 @@ private:
             nQueue[nthCPU].deQueue();
             // if timeout when pop the job from queue, abort the job
             if ( aJob.timeout <= nStatOfCPU[nthCPU].leavingTime ) {
-                ansList.addAbortJob(aJob.OID, nStatOfCPU[nthCPU].leavingTime, nStatOfCPU[nthCPU].delay );
+                ansList.addAbortJob(aJob.OID, nStatOfCPU[nthCPU].leavingTime, nStatOfCPU[nthCPU].leavingTime - aJob.arrival );
             }
             else { // process the waiting job
                 setCPU(nthCPU, aJob);
@@ -473,7 +473,7 @@ private:
 
 public:
     Simulation( const JobList& jobs, int numOfQueue, int sizeOfQueue )
-    : jobList(jobs), numOfCPU(numOfQueue), queueSize( sizeOfQueue) {
+            : jobList(jobs), numOfCPU(numOfQueue), queueSize( sizeOfQueue) {
 
         JobQueue temp( queueSize );
 
@@ -591,7 +591,7 @@ int main() {
             if ( !aList.getAll( fileName ) ) {
                 cout << endl << "### " + fileName + " does not exist! ###";
             }
-            // simulate
+                // simulate
             else {
                 aList.reset();
                 aList.getAll( fileName );
