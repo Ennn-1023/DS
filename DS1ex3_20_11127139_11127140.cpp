@@ -305,7 +305,7 @@ public:
         outFile.open( fileName );
         if ( outFile.is_open() ) {
             // abortList
-            outFile << endl << "\t[Abort Jobs]";
+            outFile << "\t[Abort Jobs]";
             outFile << endl << "\tOID\tAbort\tDelay";
             for ( int i = 0; i < abortList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID;
