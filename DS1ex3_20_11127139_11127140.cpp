@@ -320,10 +320,10 @@ public:
             }
 
             char delay[7], rate[7];
-            sprintf(rate, "%.2f", avgDelay);
+            sprintf(delay, "%.2f", avgDelay);
             sprintf(rate, "%.2f", successRate);
+            outFile << endl << "[Average Delay]\t" << delay << " ms\n";
             outFile << endl << "[Success Rate]\t" << rate << " %";
-            outFile << endl << "[Average Delay]\t" << avgDelay << " ms\n";
             outFile.close();
         }
         else {
@@ -541,10 +541,10 @@ public:
         // no idle CPUType
         // choose the shortest one
         int shortest = 0; // assume the shortest one is shortest
-        for (int i = 1; i < numOfCPU; i++ ) {
+        for (int i = 0; i < numOfCPU - 1; i++ ) {
             if ( nStatOfCPU[i].isFree ) {
-                if ( nQueue[i].length() < nQueue[i].length() ) {
-                    shortest = i;
+                if ( nQueue[i].length() > nQueue[i+1].length() ) {
+                    shortest = i+1;
                 }
             }
         }

@@ -542,10 +542,10 @@ public:
         // no idle CPUType
         // choose the shortest one
         int shortest = 0; // assume the shortest one is shortest
-        for (int i = 1; i < numOfCPU; i++ ) {
+        for (int i = 0; i < numOfCPU; i++ ) {
             if ( nStatOfCPU[i].isFree ) {
-                if ( nQueue[i].length() < nQueue[i].length() ) {
-                    shortest = i;
+                if ( nQueue[i+1].length() < nQueue[i].length() ) {
+                    shortest = i+1;
                 }
             }
         }
