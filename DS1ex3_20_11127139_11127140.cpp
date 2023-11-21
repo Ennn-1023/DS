@@ -1,9 +1,10 @@
-
+// 11127139 陳恩
+// 11127140 姜義新
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include<ctime>
+#include <ctime>
 
 using namespace std;
 
