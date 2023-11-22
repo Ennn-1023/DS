@@ -10,7 +10,6 @@
 using namespace std;
 
 clock_t  Begin, End;
-double duration;
 
 struct jobType {
     int OID;
@@ -96,7 +95,6 @@ public:
     bool getAll( string fileName ) {
 
         ifstream in;
-        Begin = clock();
         in.open(fileName.c_str());
 
         if (!in.is_open()) {
@@ -113,8 +111,7 @@ public:
         }
 
         in.close();
-        End = clock();
-        duration = double(End - Begin) / CLK_TCK;
+
 
         return true;
     }
@@ -542,11 +539,9 @@ public:
         // no idle CPUType
         // choose the shortest one
         int shortest = 0; // assume the shortest one is shortest
-        for (int i = 0; i < numOfCPU; i++ ) {
-            if ( nStatOfCPU[i].isFree ) {
-                if ( nQueue[i+1].length() < nQueue[i].length() ) {
-                    shortest = i+1;
-                }
+        for (int i = 0; i < numOfCPU - 1; i++ ) {
+            if ( nQueue[i+1].length() < nQueue[i].length() ) {
+                shortest = i+1;
             }
         }
         // the shortest is full

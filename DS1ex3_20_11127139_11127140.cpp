@@ -95,7 +95,7 @@ public:
     bool getAll( string fileName ) {
 
         ifstream in;
-        Begin = clock();
+
         in.open(fileName.c_str());
 
         if (!in.is_open()) {
@@ -112,8 +112,6 @@ public:
         }
 
         in.close();
-        End = clock();
-        duration = double(End - Begin) / CLK_TCK;
 
         return true;
     }
