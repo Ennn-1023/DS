@@ -320,8 +320,8 @@ public:
             char delay[7], rate[7];
             sprintf(delay, "%.2f", avgDelay);
             sprintf(rate, "%.2f", successRate);
-            outFile << endl << "[Average Delay]\t" << delay << " ms\n";
-            outFile << endl << "[Success Rate]\t" << rate << " %";
+            outFile << endl << "[Average Delay]\t" << delay << " ms";
+            outFile << endl << "[Success Rate]\t" << rate << " %\n";
             outFile.close();
         }
         else {
