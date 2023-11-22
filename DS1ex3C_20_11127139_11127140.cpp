@@ -379,10 +379,20 @@ public:
         nQueue.clear();
         delete[] nStatOfCPU;
     }
-    int getAvailableTime() {
-        for ( int i = 0; i < numOfCPU; i++ ) {
-
+    int getAvailableTime( int time ) {
+        int nextTime = nStatOfCPU[0].leavingTime;
+        for (int i = 1; i < numOfCPU; i++) {
+            if ( nextTime > nStatOfCPU[i].leavingTime && time < nStatOfCPU[i].leavingTime )
+                nextTime = nStatOfCPU[i].leavingTime;
         }
+
+        if ( nextTime <= time ) {
+            jobType aJob;
+            jobList.getNextJob( aJob );
+            nextTime = aJob.arrival;
+        }
+
+        return nextTime;
     }
 
     bool allFull( int time ) {
@@ -407,6 +417,30 @@ public:
 
         return nth;
     }
+    void updateCurrent( int time ) {
+        // go into CPU
+        jobType aJob;
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            while ( nStatOfCPU[i].leavingTime <= time && !nQueue[i].isEmpty() ) {
+                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
+                nQueue[i].deQueue();
+                if ( aJob.timeout <= time )
+                    ansList.addAbortJob( aJob.OID, time, time - aJob.arrival );
+                else {
+                    nStatOfCPU[i].OID = aJob.OID;
+                    nStatOfCPU[i].startTime = time;
+                    if ( time + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[i].leavingTime = time + aJob.arrival ;
+                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].leavingTime - aJob.arrival );
+                    }
+                    else {
+                        nStatOfCPU[i].leavingTime = aJob.timeout;
+                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival );
+                    }
+                }
+            }
+        }
+    }
     void processArrived( int time ) {
         // enqueue the arrived job before the time
         jobType aJob;
@@ -426,53 +460,36 @@ public:
         }
 
         // update current
-        for ( int i = 0; i < numOfCPU; i++ ) {
-            if ( nStatOfCPU[i].leavingTime == time ) {
-                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
-                nQueue[i].deQueue();
-                if ( aJob.timeout <= time )
-                    ansList.addAbortJob( aJob.OID, time, time - aJob.arrival );
-                else {
-                    nStatOfCPU[i].OID = aJob.OID;
-                    nStatOfCPU[i].startTime = time;
-                    if ( time + aJob.duration <= aJob.timeout) {
-                        nStatOfCPU[i].leavingTime = time + aJob.arrival ;
-                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].leavingTime - aJob.arrival );
-                    }
-                    else {
-                        nStatOfCPU[i].leavingTime = aJob.timeout;
-                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival );
-                    }
-
-                }
-            }
-        }
+        updateCurrent( time );
 
         jobList.getNextJob( aJob );
         while ( aJob.arrival == time ) {
             jobList.delOneJob();
 
-            if ( allFull( time ) )
-                ansList.addAbortJob( aJob.OID, aJob.arrival, 0 );
+            if (allFull(time)) // all full
+                ansList.addAbortJob(aJob.OID, aJob.arrival, 0);
                 // choose one enqueue
-            else {
-                int n = chooseACPU( aJob.arrival );
-                nQueue[n].enQueue( aJob );
+            else { // 丟job進queue或CPU?
+                int n = chooseACPU(aJob.arrival);
+                nQueue[n].enQueue(aJob);
             }
             // get next
-            jobList.getNextJob( aJob );
+            jobList.getNextJob(aJob);
         }
+        // again check
+        updateCurrent( time );
 
 
     }
     void simulate( AnsList& answer ) {
         int numOfJob = jobList.getLength(); // problem size
-        int time;
+        int time = 0;
         while ( ansList.getNumOfDone() < numOfJob ) {
-            time = getAvailableTime();
+            time = getAvailableTime( time );
             // deal with the jobs arrived before the time
             processArrived( time );
             // if no job to do, get a new one
+
         }
 
         answer = ansList;
