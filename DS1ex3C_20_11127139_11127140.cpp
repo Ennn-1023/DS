@@ -82,6 +82,12 @@ public:
             cerr << "Get from empty jobList!" << endl;
         }
     }
+    int getArrivalTime() {
+        if ( !list.empty() )
+            return list[0].arrival;
+        else
+            return -1;
+    }
     void delOneJob() {
         /*
          * delete the first item in list
@@ -425,13 +431,13 @@ public:
                 nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
                 nQueue[i].deQueue();
                 if ( aJob.timeout <= time )
-                    ansList.addAbortJob( aJob.OID, time, time - aJob.arrival );
+                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival );
                 else {
                     nStatOfCPU[i].OID = aJob.OID;
                     nStatOfCPU[i].startTime = time;
-                    if ( time + aJob.duration <= aJob.timeout) {
-                        nStatOfCPU[i].leavingTime = time + aJob.arrival ;
-                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].leavingTime - aJob.arrival );
+                    if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[i].leavingTime = time + aJob.duration;
+                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival );
                     }
                     else {
                         nStatOfCPU[i].leavingTime = aJob.timeout;
@@ -442,10 +448,16 @@ public:
         }
     }
     void processArrived( int time ) {
+        /*
+         * First, deal the arrival happened before the time ( enqueue or abort )
+         * Second, deal the cpu status at the time ( nStatOfCPU and nQueue )
+         * third, deal the arriving job at the time ( arrival == time )
+         */
+
         // enqueue the arrived job before the time
         jobType aJob;
-        jobList.getNextJob( aJob ) ;
-        while ( aJob.arrival < time ) {
+        while ( jobList.getArrivalTime() != -1 && jobList.getArrivalTime() < time ) {
+            jobList.getNextJob( aJob ) ;
             jobList.delOneJob();
 
             if ( allFull( time ) )
@@ -454,16 +466,24 @@ public:
             else {
                 int n = chooseACPU( aJob.arrival );
                 nQueue[n].enQueue( aJob );
+                // if the job can be process immediately
+                updateCurrent( aJob.arrival );
+                /*
+                if ( nStatOfCPU[n].leavingTime <= aJob.arrival ) {
+                    nQueue[n].deQueue();
+                    nStatOfCPU[n].startTime = aJob.arrival;
+                    nStatOfCPU[n].leavingTime = aJob.arrival + aJob.duration;
+                    ansList.addDoneJob( aJob.OID, nStatOfCPU[n].leavingTime, 0 );
+                }
+                */
             }
-            // get next
-            jobList.getNextJob( aJob );
         }
 
         // update current
         updateCurrent( time );
 
-        jobList.getNextJob( aJob );
-        while ( aJob.arrival == time ) {
+        while ( jobList.getArrivalTime() == time ) {
+            jobList.getNextJob( aJob );
             jobList.delOneJob();
 
             if (allFull(time)) // all full
@@ -472,13 +492,13 @@ public:
             else { // 丟job進queue或CPU?
                 int n = chooseACPU(aJob.arrival);
                 nQueue[n].enQueue(aJob);
+                // if the job can be process immediately
+                updateCurrent( aJob.arrival );
             }
             // get next
             jobList.getNextJob(aJob);
         }
         // again check
-        updateCurrent( time );
-
 
     }
     void simulate( AnsList& answer ) {
