@@ -511,7 +511,7 @@ public:
     void finishQueue( int time ) {
         jobType aJob;
         for ( int i = 0; i < numOfCPU; i++ ) {
-            while ( nStatOfCPU[i].leavingTime <= time && !nQueue[i].isEmpty() ) {
+            while ( !nQueue[i].isEmpty() ) {
                 nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
                 nQueue[i].deQueue();
                 if ( aJob.timeout <= time )
