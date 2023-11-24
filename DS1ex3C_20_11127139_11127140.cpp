@@ -261,11 +261,13 @@ private:
         int OID;
         int Abort;
         int Delay;
+        int CID;
     };
     struct doneType {
         int OID;
         int Departure;
         int Delay;
+        int CID;
     };
 
     vector<abortType> abortList;
@@ -285,8 +287,8 @@ public:
         doneList.clear();
     }
     // void showAll();
-    void addAbortJob( int OID, int abort, int delay ) {
-        abortType newJob = { OID, abort, delay };
+    void addAbortJob( int OID, int abort, int delay, int CID ) {
+        abortType newJob = { OID, abort, delay, CID };
 
         abortList.push_back( newJob );
         totalDelay += delay;
@@ -296,8 +298,8 @@ public:
         return abortList.size() + doneList.size();
     }
 
-    void addDoneJob( int OID, int departure, int delay ) {
-        doneType newJob = { OID, departure, delay };
+    void addDoneJob( int OID, int departure, int delay, int CID ) {
+        doneType newJob = { OID, departure, delay, CID };
         doneList.push_back(newJob);
         totalDelay += delay;
     }
@@ -313,17 +315,19 @@ public:
         if ( outFile.is_open() ) {
             // abortList
             outFile << "\t[Abort Jobs]";
-            outFile << endl << "\tOID\tAbort\tDelay";
+            outFile << endl << "\tOID\tAbort\tDelay\tCID";
             for ( int i = 0; i < abortList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID;
-                outFile << "\t" << abortList[i].Abort << "\t" << abortList[i].Delay;
+                outFile << "\t" << abortList[i].Abort << "\t" << abortList[i].Delay << "\t";
+                outFile << abortList[i].CID;
             }
             // doneList
             outFile << endl << "\t[Jobs Done]";
-            outFile << endl << "\tOID\tDeparture\tDelay";
+            outFile << endl << "\tOID\tDeparture\tDelay\tCID";
             for ( int i = 0; i < doneList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID;
-                outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay;
+                outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay << "\t";
+                outFile << doneList[i].CID;
             }
 
             char delay[7], rate[7];
@@ -436,17 +440,17 @@ public:
                 nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
                 nQueue[i].deQueue();
                 if ( aJob.timeout <= time )
-                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival );
+                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
                 else {
                     nStatOfCPU[i].OID = aJob.OID;
                     nStatOfCPU[i].startTime = time;
                     if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
                         nStatOfCPU[i].leavingTime = time + aJob.duration;
-                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival );
+                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival, i+1 );
                     }
                     else {
                         nStatOfCPU[i].leavingTime = aJob.timeout;
-                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival );
+                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
                     }
                 }
             }
@@ -466,7 +470,7 @@ public:
             jobList.delOneJob();
 
             if ( allFull( time ) )
-                ansList.addAbortJob( aJob.OID, aJob.arrival, 0 );
+                ansList.addAbortJob( aJob.OID, aJob.arrival, 0, 0 );
             // choose one enqueue
             else {
                 int n = chooseACPU( aJob.arrival );
@@ -492,7 +496,7 @@ public:
             jobList.delOneJob();
 
             if (allFull(time)) // all full
-                ansList.addAbortJob(aJob.OID, aJob.arrival, 0);
+                ansList.addAbortJob( aJob.OID, aJob.arrival, 0, 0 );
                 // choose one enqueue
             else { // 丟job進queue或CPU?
                 int n = chooseACPU(aJob.arrival);
