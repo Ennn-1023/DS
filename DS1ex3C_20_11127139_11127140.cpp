@@ -358,6 +358,7 @@ private:
     int numOfCPU; // number of total cpu
     int queueSize;
     bool isFinish = false; // if isFinish is true, call finishQueue
+    int numOfJob ;
 
 
 
@@ -510,30 +511,35 @@ public:
 
     void finishQueue( int time ) {
         jobType aJob;
-        for ( int i = 0; i < numOfCPU; i++ ) {
-            while ( !nQueue[i].isEmpty() ) {
-                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
-                nQueue[i].deQueue();
-                if ( aJob.timeout <= time )
-                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
+
+        while ( ansList.getNumOfDone() < numOfJob) {
+            int i = 0 ;
+            for ( int j = 1; j < numOfCPU; j++ ) {
+                if ( nStatOfCPU[i].leavingTime > nStatOfCPU[j].leavingTime )
+                    i = j;
+            }
+            nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
+            nQueue[i].deQueue();
+            if ( aJob.timeout <= time )
+                ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
+            else {
+                nStatOfCPU[i].OID = aJob.OID;
+                nStatOfCPU[i].startTime = time;
+                if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
+                    nStatOfCPU[i].leavingTime = time + aJob.duration;
+                    ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival, i+1);
+                }
                 else {
-                    nStatOfCPU[i].OID = aJob.OID;
-                    nStatOfCPU[i].startTime = time;
-                    if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
-                        nStatOfCPU[i].leavingTime = time + aJob.duration;
-                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival, i+1);
-                    }
-                    else {
-                        nStatOfCPU[i].leavingTime = aJob.timeout;
-                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival, i+1);
-                    }
+                    nStatOfCPU[i].leavingTime = aJob.timeout;
+                    ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival, i+1);
                 }
             }
         }
+
     }
 
     void simulate( AnsList& answer ) {
-        int numOfJob = jobList.getLength(); // problem size
+        numOfJob = jobList.getLength(); // problem size
         int time = 0;
 
         while ( ansList.getNumOfDone() < numOfJob && time != -1 ) {
