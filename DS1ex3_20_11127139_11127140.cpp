@@ -72,6 +72,15 @@ public:
     bool isEmpty() const {
         return list.empty();
     }
+    int getLength() {
+        return list.size();
+    }
+    int getArrivalTime() {
+        if ( !list.empty() )
+            return list[0].arrival;
+        else
+            return -1;
+    }
     void getNextJob( jobType& firstJob) {
         // get the first job in list but not delete it.
         if ( !list.empty() ) {
@@ -285,7 +294,9 @@ public:
         totalDelay += delay;
     }
 
-
+    int getNumOfDone() {
+        return abortList.size() + doneList.size();
+    }
 
     void addDoneJob( int OID, int departure, int delay ) {
         doneType newJob = { OID, departure, delay };
@@ -346,130 +357,8 @@ private:
     CPUType* nStatOfCPU; // an array for n cpu
     int numOfCPU; // number of total cpu
     int queueSize;
-    void updateQueue( int time ) {
-        // update each cpu to be the status at input time;
-
-        for (int i = 0; i < numOfCPU; i++ ) {
-
-            // if the executing job is finished when time = input time, update CPUType status
-            // only if the cpu have job to do.
 
 
-            while ( time >= nStatOfCPU[i].leavingTime ) {
-
-                // determine the job is done or aborted when there is job in cpu
-                if ( !nStatOfCPU[i].isFree)
-                    finishOneJob( i );
-
-
-                // get a waiting job to process or there is no job to do
-                if ( !processNextJob( i ) )
-                    nStatOfCPU[i].isFree = true;
-
-                if ( nQueue[i].isEmpty() )
-                    break;
-            }
-        } // end of for, has updated each CPUType
-    }
-    bool processNextJob( int nthCPU ) {
-        // return true when set the CPUType status by a new job successfully
-        // otherwise, return false when there is no job in queue to do
-
-        // the waiting job in queue front
-        jobType aJob;
-        while ( !nQueue[nthCPU].isEmpty() ) {
-            nQueue[nthCPU].getFront( aJob );
-            // delete the front job from queue
-            nQueue[nthCPU].deQueue();
-            // if timeout when pop the job from queue, abort the job
-            if ( aJob.timeout <= nStatOfCPU[nthCPU].leavingTime ) {
-                ansList.addAbortJob(aJob.OID, nStatOfCPU[nthCPU].leavingTime, nStatOfCPU[nthCPU].leavingTime - aJob.arrival );
-            }
-            else { // process the waiting job
-                setCPU(nthCPU, aJob);
-                return true; // successfully changed the CPUType status
-            }
-            // delete the processing job from queue
-
-        }
-        // there is no job to be push into CPUType;
-        return false;
-    }
-    void setCPU(int nthCPU, const jobType& newJob ) {
-        // set the executing job information, includes it will be done or aborted
-
-        nStatOfCPU[nthCPU].OID = newJob.OID;
-        nStatOfCPU[nthCPU].isFree = false;
-
-        // set the start time
-        if ( nStatOfCPU[nthCPU].leavingTime < newJob.arrival ) // immediately processed next job
-            nStatOfCPU[nthCPU].startTime = newJob.arrival;
-        else // wait until previous job is done
-            nStatOfCPU[nthCPU].startTime = nStatOfCPU[nthCPU].leavingTime;
-
-
-        // check the job will be done or aborted when leaving
-        nStatOfCPU[nthCPU].leavingTime = nStatOfCPU[nthCPU].startTime + newJob.duration;
-
-        // if the done time exceed timeout, set the leaving time to be the abort time
-        if (nStatOfCPU[nthCPU].leavingTime > newJob.timeout) {
-            nStatOfCPU[nthCPU].leavingTime = newJob.timeout;
-            nStatOfCPU[nthCPU].done = false;
-            nStatOfCPU[nthCPU].delay = nStatOfCPU[nthCPU].leavingTime - newJob.arrival;
-        }
-        else { // done
-            nStatOfCPU[nthCPU].done = true;
-            nStatOfCPU[nthCPU].delay = nStatOfCPU[nthCPU].leavingTime - (newJob.arrival + newJob.duration);
-        }
-
-    }
-    bool checkFinishOrNot() {
-        // check if there is any job in CPUType
-        for ( int i = 0; i < numOfCPU; i++ ) {
-            if ( !nStatOfCPU[i].isFree )
-                return false;
-        }
-        // all CPUType is free
-        return true;
-    }
-    void finishQueue() {
-        // finish all the jobs in queues
-        bool done = checkFinishOrNot();
-        int time = -1;
-        // deal with the remaining jobs in queue
-
-        while ( !done ) {
-            // update time
-            // choose the fastest time
-            for ( int i = 0; i < numOfCPU && time == -1; i++ ) {
-                if ( !nStatOfCPU[i].isFree )
-                    time = nStatOfCPU[i].leavingTime;
-            }
-            for (int i = 0; i < numOfCPU; i++) {
-                if ( !nStatOfCPU[i].isFree && time < nStatOfCPU[i].leavingTime )
-                    time = nStatOfCPU[i].leavingTime;
-            }
-            // update by the time
-
-            updateQueue( time );
-
-            // time = -1;
-            done = checkFinishOrNot();
-        }
-    }
-    void finishOneJob( int nth ) {
-        if ( !nStatOfCPU[nth].isFree ){ // the CPUType has a job to output
-            if (nStatOfCPU[nth].done) // done
-                ansList.addDoneJob(nStatOfCPU[nth].OID, nStatOfCPU[nth].leavingTime, nStatOfCPU[nth].delay);
-            else // abort
-                ansList.addAbortJob(nStatOfCPU[nth].OID, nStatOfCPU[nth].leavingTime, nStatOfCPU[nth].delay);
-            // current job is done
-            nStatOfCPU[nth].isFree = true;
-        }
-        else {
-            cerr << "No Job to be done when finishOneJob()" << endl;
-        }
-    }
 
 public:
     Simulation( const JobList& jobs, int numOfQueue, int sizeOfQueue )
@@ -498,59 +387,138 @@ public:
         nQueue.clear();
         delete[] nStatOfCPU;
     }
-
-    void simulate( AnsList& answer ) {
-
-        jobType nextJob; // the job to push into queue.
-        bool processed; // whether the job has been processed
-        // keep processing the jobs in jobList until it is empty
-        while ( !jobList.isEmpty() ) {
-            // processed = false;
-            jobList.getNextJob( nextJob );
-            jobList.delOneJob();
-            // according to the next job, which should be processed, to update all CPUType
-
-            updateQueue( nextJob.arrival );
-
-            int nthCpu = chooseOneCPU(nextJob.arrival);
-            // choose one queue to push nextJob in.
-            // otherwise, if there is no queue available, abort this job
-            if ( nthCpu != -1 )
-                nQueue[nthCpu].enQueue(nextJob);
-            else // abort the job immediately when it arrived
-                ansList.addAbortJob(nextJob.OID, nextJob.arrival, 0);
-        }
-
-        // finish the job in queues
-        // time begin at the next job arrived
-        finishQueue();
-
-        answer = ansList;
-
-    }
-    int chooseOneCPU(int arrivalTime ) {
-
-        // the first idle CPUType will have a highest priority.
-        for (int i = 0; i < numOfCPU; i++ ) {
-            if ( nStatOfCPU[i].isFree ) {
-                return i;
+    int getAvailableTime( int time ) {
+        int nextTime = time;
+        for (int i = 0; i < numOfCPU; i++) {
+            if ( nStatOfCPU[i].leavingTime > time ) {
+                nextTime = nStatOfCPU[i].leavingTime;
+                break;
             }
         }
-        // no idle CPUType
-        // choose the shortest one
-        int shortest = 0; // assume the shortest one is shortest
-        for (int i = 0; i < numOfCPU - 1; i++ ) {
-            if ( nStatOfCPU[i].isFree ) {
-                if ( nQueue[i].length() > nQueue[i+1].length() ) {
-                    shortest = i+1;
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            if ( nStatOfCPU[i].leavingTime > time && nextTime > nStatOfCPU[i].leavingTime )
+                nextTime = nStatOfCPU[i].leavingTime;
+        }
+
+
+        if ( nextTime <= time )
+            nextTime = jobList.getArrivalTime();
+
+
+        return nextTime;
+    }
+
+    bool allFull( int time ) {
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            if ( !nQueue[i].isFull() )
+                return false;
+        }
+
+        return true;
+    }
+    int chooseACPU( int arrival) {
+        int nth = 0;
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            if ( nQueue[i].isEmpty() && nStatOfCPU[i].leavingTime < arrival )
+                return i;
+        }
+
+        for ( int i = 1; i < numOfCPU; i++ ) {
+            if ( nQueue[nth].length() > nQueue[i].length() )
+                nth = i;
+        }
+
+        return nth;
+    }
+    void updateCurrent( int time ) {
+        // go into CPU
+        jobType aJob;
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            while ( nStatOfCPU[i].leavingTime <= time && !nQueue[i].isEmpty() ) {
+                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
+                nQueue[i].deQueue();
+                if ( aJob.timeout <= time )
+                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival );
+                else {
+                    nStatOfCPU[i].OID = aJob.OID;
+                    nStatOfCPU[i].startTime = time;
+                    if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[i].leavingTime = time + aJob.duration;
+                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival );
+                    }
+                    else {
+                        nStatOfCPU[i].leavingTime = aJob.timeout;
+                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival );
+                    }
                 }
             }
         }
-        // the shortest is full
-        if ( nQueue[shortest].isFull() )
-            return -1;
-        else // the shortest CPUType is available
-            return shortest;
+    }
+    void processArrived( int time ) {
+        /*
+         * First, deal the arrival happened before the time ( enqueue or abort )
+         * Second, deal the cpu status at the time ( nStatOfCPU and nQueue )
+         * third, deal the arriving job at the time ( arrival == time )
+         */
+
+        // enqueue the arrived job before the time
+        jobType aJob;
+        while ( jobList.getArrivalTime() != -1 && jobList.getArrivalTime() < time ) {
+            jobList.getNextJob( aJob ) ;
+            jobList.delOneJob();
+
+            if ( allFull( time ) )
+                ansList.addAbortJob( aJob.OID, aJob.arrival, 0 );
+                // choose one enqueue
+            else {
+                int n = chooseACPU( aJob.arrival );
+                nQueue[n].enQueue( aJob );
+                // if the job can be process immediately
+                updateCurrent( aJob.arrival );
+                /*
+                if ( nStatOfCPU[n].leavingTime <= aJob.arrival ) {
+                    nQueue[n].deQueue();
+                    nStatOfCPU[n].startTime = aJob.arrival;
+                    nStatOfCPU[n].leavingTime = aJob.arrival + aJob.duration;
+                    ansList.addDoneJob( aJob.OID, nStatOfCPU[n].leavingTime, 0 );
+                }
+                */
+            }
+        }
+
+        // update current
+        updateCurrent( time );
+
+        while ( jobList.getArrivalTime() == time ) {
+            jobList.getNextJob( aJob );
+            jobList.delOneJob();
+
+            if (allFull(time)) // all full
+                ansList.addAbortJob( aJob.OID, aJob.arrival, 0 );
+                // choose one enqueue
+            else { // 丟job進queue或CPU?
+                int n = chooseACPU(aJob.arrival);
+                nQueue[n].enQueue(aJob);
+                // if the job can be process immediately
+                updateCurrent( aJob.arrival );
+            }
+        }
+        // again check
+
+    }
+    void simulate( AnsList& answer ) {
+        int numOfJob = jobList.getLength(); // problem size
+        int time = 0;
+        while ( ansList.getNumOfDone() < numOfJob ) {
+            time = getAvailableTime( time );
+            // deal with the jobs arrived before the time
+            processArrived( time );
+            // if no job to do, get a new one
+
+        }
+
+        answer = ansList;
+
     }
 
 };
