@@ -357,6 +357,7 @@ private:
     CPUType* nStatOfCPU; // an array for n cpu
     int numOfCPU; // number of total cpu
     int queueSize;
+    bool isFinish = false; // if isFinish is true, call finishQueue
 
 
 
@@ -396,6 +397,11 @@ public:
 
         if ( nextTime <= time ) {
             nextTime = jobList.getArrivalTime();
+        }
+
+        if (jobList.isEmpty()){
+            isFinish = true ;
+            return nextTime;
         }
 
         return nextTime;
@@ -501,19 +507,46 @@ public:
         // again check
 
     }
+
+    void finishQueue( int time ) {
+        jobType aJob;
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            while ( nStatOfCPU[i].leavingTime <= time && !nQueue[i].isEmpty() ) {
+                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
+                nQueue[i].deQueue();
+                if ( aJob.timeout <= time )
+                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
+                else {
+                    nStatOfCPU[i].OID = aJob.OID;
+                    nStatOfCPU[i].startTime = time;
+                    if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[i].leavingTime = time + aJob.duration;
+                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival, i+1);
+                    }
+                    else {
+                        nStatOfCPU[i].leavingTime = aJob.timeout;
+                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival, i+1);
+                    }
+                }
+            }
+        }
+    }
+
     void simulate( AnsList& answer ) {
         int numOfJob = jobList.getLength(); // problem size
         int time = 0;
+
         while ( ansList.getNumOfDone() < numOfJob && time != -1 ) {
             time = getAvailableTime( time );
             // deal with the jobs arrived before the time
+            if (isFinish == true)
+                break;
             processArrived( time );
             // if no job to do, get a new one
-            if (time == -1)
-                break;
         }
 
-        //finishq
+        finishQueue( time ) ;
+
         answer = ansList;
 
     }
