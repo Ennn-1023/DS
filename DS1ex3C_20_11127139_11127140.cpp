@@ -386,17 +386,22 @@ public:
         delete[] nStatOfCPU;
     }
     int getAvailableTime( int time ) {
-        int nextTime = nStatOfCPU[0].leavingTime;
-        for (int i = 1; i < numOfCPU; i++) {
-            if ( nextTime > nStatOfCPU[i].leavingTime && time < nStatOfCPU[i].leavingTime )
+        int nextTime = time;
+        for (int i = 0; i < numOfCPU; i++) {
+            if ( nStatOfCPU[i].leavingTime > time ) {
+                nextTime = nStatOfCPU[i].leavingTime;
+                break;
+            }
+        }
+        for ( int i = 0; i < numOfCPU; i++ ) {
+            if ( nStatOfCPU[i].leavingTime > time && nextTime > nStatOfCPU[i].leavingTime )
                 nextTime = nStatOfCPU[i].leavingTime;
         }
 
-        if ( nextTime <= time ) {
-            jobType aJob;
-            jobList.getNextJob( aJob );
-            nextTime = aJob.arrival;
-        }
+
+        if ( nextTime <= time )
+            nextTime = jobList.getArrivalTime();
+
 
         return nextTime;
     }
@@ -495,8 +500,6 @@ public:
                 // if the job can be process immediately
                 updateCurrent( aJob.arrival );
             }
-            // get next
-            jobList.getNextJob(aJob);
         }
         // again check
 
