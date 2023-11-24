@@ -8,9 +8,6 @@
 
 using namespace std;
 
-clock_t  Begin, End;
-double duration;
-
 struct jobType {
     int OID;
     int arrival;
@@ -127,6 +124,7 @@ public:
 
 
     bool getSorted( string fileName ) {
+        clock_t  Begin, End;
         int readTime, sortTime, writeTime;
         Begin = clock();
         if (!getAll(fileName))
