@@ -509,9 +509,11 @@ public:
             // deal with the jobs arrived before the time
             processArrived( time );
             // if no job to do, get a new one
-
+            if (time == -1)
+                break;
         }
 
+        //finishq
         answer = ansList;
 
     }
