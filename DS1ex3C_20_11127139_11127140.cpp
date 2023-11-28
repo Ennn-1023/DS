@@ -321,7 +321,7 @@ public:
             }
             // doneList
             outFile << endl << "\t[Jobs Done]";
-            outFile << endl << "\tOID\tDeparture\tDelay\tCID";
+            outFile << endl << "\tOID\tCID\tDeparture\tDelay";
             for ( int i = 0; i < doneList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID << "\t" << doneList[i].CID;
                 outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay << "\t";
@@ -462,22 +462,34 @@ public:
     void updateCurrent( int time ) {
         // go into CPU
         jobType aJob;
-        for ( int i = 0; i < numOfCPU; i++ ) {
-            while ( nStatOfCPU[i].leavingTime <= time && !nQueue[i].isEmpty() ) {
-                nQueue[i].getFront( aJob ); // get the job from queue and put into CPU
-                nQueue[i].deQueue();
-                if ( aJob.timeout <= time )
-                    ansList.addAbortJob( aJob.OID, time, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
-                else {
-                    nStatOfCPU[i].OID = aJob.OID;
-                    nStatOfCPU[i].startTime = time;
-                    if ( nStatOfCPU[i].leavingTime + aJob.duration <= aJob.timeout) {
-                        nStatOfCPU[i].leavingTime = time + aJob.duration;
-                        ansList.addDoneJob( aJob.OID, nStatOfCPU[i].leavingTime , nStatOfCPU[i].startTime - aJob.arrival, i+1 );
+        for (int nth = 0; nth < numOfCPU; nth++ ) {
+            while (nStatOfCPU[nth].leavingTime <= time && !nQueue[nth].isEmpty() ) {
+                nQueue[nth].getFront(aJob ); // get the job from queue and put into CPU
+                nQueue[nth].deQueue();
+                if ( aJob.timeout <= nStatOfCPU[nth].leavingTime )
+                    ansList.addAbortJob(aJob.OID, time, nStatOfCPU[nth].leavingTime - aJob.arrival, nth + 1 );
+                else if ( aJob.arrival <= nStatOfCPU[nth].leavingTime ){
+                    nStatOfCPU[nth].OID = aJob.OID;
+                    nStatOfCPU[nth].startTime = nStatOfCPU[nth].leavingTime;
+                    if (nStatOfCPU[nth].leavingTime + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[nth].leavingTime = nStatOfCPU[nth].leavingTime + aJob.duration;
+                        ansList.addDoneJob(aJob.OID, nStatOfCPU[nth].leavingTime , nStatOfCPU[nth].startTime - aJob.arrival, nth + 1 );
                     }
                     else {
-                        nStatOfCPU[i].leavingTime = aJob.timeout;
-                        ansList.addAbortJob( aJob.OID, aJob.timeout, nStatOfCPU[i].leavingTime - aJob.arrival, i+1 );
+                        nStatOfCPU[nth].leavingTime = aJob.timeout;
+                        ansList.addAbortJob(aJob.OID, aJob.timeout, nStatOfCPU[nth].leavingTime - aJob.arrival, nth + 1 );
+                    }
+                }
+                else { // aJob.arrival > leavingTime
+                    nStatOfCPU[nth].OID = aJob.OID;
+                    nStatOfCPU[nth].startTime = time;
+                    if ( aJob.arrival + aJob.duration <= aJob.timeout) {
+                        nStatOfCPU[nth].leavingTime = nStatOfCPU[nth].startTime + aJob.duration;
+                        ansList.addDoneJob(aJob.OID, nStatOfCPU[nth].leavingTime , nStatOfCPU[nth].startTime - aJob.arrival, nth + 1 );
+                    }
+                    else {
+                        nStatOfCPU[nth].leavingTime = aJob.timeout;
+                        ansList.addAbortJob(aJob.OID, aJob.timeout, nStatOfCPU[nth].leavingTime - aJob.arrival, nth + 1 );
                     }
                 }
             }
@@ -495,15 +507,17 @@ public:
         while ( jobList.getArrivalTime() != -1 && jobList.getArrivalTime() < time ) {
             jobList.getNextJob( aJob ) ;
             jobList.delOneJob();
-
-            if ( allFull( time ) )
-                ansList.addAbortJob( aJob.OID, aJob.arrival, 0, 0 );
+            updateCurrent( aJob.arrival );
+            if ( allFull( time ) ) {
+                updateCurrent( aJob.arrival );
+                ansList.addAbortJob(aJob.OID, aJob.arrival, 0, 0);
+            }
             // choose one enqueue
             else {
                 int n = chooseACPU( aJob.arrival );
                 nQueue[n].enQueue( aJob );
                 // if the job can be process immediately
-                updateCurrent( aJob.arrival );
+                // updateCurrent( aJob.arrival );
                 /*
                 if ( nStatOfCPU[n].leavingTime <= aJob.arrival ) {
                     nQueue[n].deQueue();
