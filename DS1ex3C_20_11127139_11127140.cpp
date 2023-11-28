@@ -293,7 +293,6 @@ public:
         abortList.push_back( newJob );
         totalDelay += delay;
     }
-
     int getNumOfDone() {
         return abortList.size() + doneList.size();
     }
@@ -309,25 +308,53 @@ public:
         successRate = (float ( doneList.size() ) / float(totalJob)) * 100;
 
     }
-    void putAll( string fileName ) {
+    void putAll3( string fileName ) {
         ofstream outFile;
         outFile.open( fileName );
         if ( outFile.is_open() ) {
             // abortList
             outFile << "\t[Abort Jobs]";
-            outFile << endl << "\tOID\tAbort\tDelay\tCID";
+            outFile << endl << "\tOID\tCID\tAbort\tDelay";
             for ( int i = 0; i < abortList.size(); i++ ) {
-                outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID;
+                outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID << "\t" << abortList[i].CID;
                 outFile << "\t" << abortList[i].Abort << "\t" << abortList[i].Delay << "\t";
-                outFile << abortList[i].CID;
             }
             // doneList
             outFile << endl << "\t[Jobs Done]";
             outFile << endl << "\tOID\tDeparture\tDelay\tCID";
             for ( int i = 0; i < doneList.size(); i++ ) {
+                outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID << "\t" << doneList[i].CID;
+                outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay << "\t";
+            }
+
+            char delay[7], rate[7];
+            sprintf( delay, "%.2f", avgDelay);
+            sprintf(rate, "%.2f", successRate);
+            outFile << endl << "[Average Delay]\t" << delay << " ms";
+            outFile << endl << "[Success Rate]\t" << rate << " %\n";
+            outFile.close();
+        }
+        else {
+            cerr << "Open output file error!" << endl;
+        }
+    }
+    void putAll2( string fileName ) {
+        ofstream outFile;
+        outFile.open( fileName );
+        if ( outFile.is_open() ) {
+            // abortList
+            outFile << "\t[Abort Jobs]";
+            outFile << endl << "\tOID\tCID\tAbort\tDelay";
+            for ( int i = 0; i < abortList.size(); i++ ) {
+                outFile << endl << "[" << i+1 << "]\t" << abortList[i].OID << "\t";
+                outFile << "\t" << abortList[i].Abort << "\t" << abortList[i].Delay << "\t";
+            }
+            // doneList
+            outFile << endl << "\t[Jobs Done]";
+            outFile << endl << "\tOID\tDeparture\tDelay";
+            for ( int i = 0; i < doneList.size(); i++ ) {
                 outFile << endl << "[" << i+1 << "]\t" << doneList[i].OID;
                 outFile << "\t" << doneList[i].Departure << "\t" << doneList[i].Delay << "\t";
-                outFile << doneList[i].CID;
             }
 
             char delay[7], rate[7];
@@ -536,7 +563,7 @@ int main() {
         cout << endl << "* 1. Sort a file                     *";
         cout << endl << "* 2. Simulate one FIFO queue         *";
         cout << endl << "**************************************";
-        cout << endl << "Input a command(0, 1, 2): ";
+        cout << endl << "Input a command(0, 1, 2, 3): ";
         cin >> cmd;
         string fileName, id;
         if ( cmd == 1 ) {
@@ -552,7 +579,7 @@ int main() {
             }
 
         }
-        else if ( cmd == 2 ) {
+        else if ( cmd == 2 || cmd == 3 ) {
             if ( aList.getID().empty() )
                 aList.setID();
             fileName = "sorted" + aList.getID() + ".txt"; // format: sortedXXX.txt
@@ -564,19 +591,25 @@ int main() {
             else {
                 aList.reset();
                 aList.getAll( fileName );
-                int numOfCpu, sizeOfQueue ;
-                cout << endl << "Input num of cpu: "  ;
-                cin >> numOfCpu ;
-                cout << endl << "Input size of queue: "  ;
-                cin >> sizeOfQueue ;
+                int numOfCpu, sizeOfQueue = 3;
                 cout << endl << "The simulation is running...";
+                if ( cmd == 2 )
+                    numOfCpu = 1;
+                else
+                    numOfCpu = 2;
 
                 AnsList answer;
                 Simulation simulation(aList, numOfCpu, sizeOfQueue); // jobList, numOfCPU, queueSize
                 simulation.simulate( answer );
-                fileName = "outputC" + aList.getID() + ".txt";
                 answer.computeStats();
-                answer.putAll( fileName );
+                if( cmd == 2) {
+                    fileName = "output" + aList.getID() + ".txt";
+                    answer.putAll2(fileName);
+                }
+                else {
+                    fileName = "double" + aList.getID() + ".txt";
+                    answer.putAll3(fileName);
+                }
                 cout << endl << "See " + fileName;
             }
         }
