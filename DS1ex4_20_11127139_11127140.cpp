@@ -38,10 +38,17 @@ private:
             return new TreeNode(value);
         }
 
-
+        /*
         if ((value.sname.compare(root->data.sname) < 0)){
             root->left = insertRecursive(root->left, value);
         } else if ((value.sname.compare(root->data.sname) >= 0)) {
+            root->right = insertRecursive(root->right, value);
+        }
+        */
+
+        if (value.sname < root->data.sname){
+            root->left = insertRecursive(root->left, value);
+        } else if (value.sname >= root->data.sname) {
             root->right = insertRecursive(root->right, value);
         }
 
@@ -62,7 +69,7 @@ private:
         while (root != nullptr) {
             if ( sname >= root->data.sname ){
                 if ( sname == root->data.sname ){
-                    cout << root->data.sname << "\n";
+                    cout << root->data.sname << " " << root->data.dname << "\n";
                 }
                 root = root->right ;
             }
@@ -168,6 +175,7 @@ private:
 
         int leftHeight = calculateHeight(root->left);
         int rightHeight = calculateHeight(root->right);
+
 
         return 1 + max(leftHeight, rightHeight);
     }
