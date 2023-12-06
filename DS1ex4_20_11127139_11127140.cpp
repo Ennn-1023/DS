@@ -38,6 +38,7 @@ private:
             return new TreeNode(value);
         }
 
+
         if ((value.sname.compare(root->data.sname) < 0)){
             root->left = insertRecursive(root->left, value);
         } else if ((value.sname.compare(root->data.sname) >= 0)) {
@@ -53,6 +54,23 @@ private:
             inorderTraversalRecursive(root->left);
             std::cout << root->data.sname << " ";
             inorderTraversalRecursive(root->right);
+        }
+    }
+
+    void snamePrint(TreeNode* root, string sname) {
+
+        while (root != nullptr || sname == root->data.sname ) {
+            if ( sname >= root->data.sname ){
+                root = root->right ;
+            }
+            else{
+                root = root->left ;
+            }
+        }
+
+        while (root != nullptr || sname != root->data.sname ) {
+            cout << root->data.sname ;
+            root = root->right ;
         }
     }
 
@@ -81,6 +99,10 @@ public:
         std::cout << "Inorder Traversal: ";
         inorderTraversalRecursive(root);
         std::cout << std::endl;
+    }
+
+    void printSname( string sname ) {
+        snamePrint(root, sname) ;
     }
 
     int getHeight() {
@@ -277,18 +299,21 @@ int main(){
     }
     schoolBSTGrad.gradMore(50) ;
 
-    schoolBSTGrad.inorderTraversal() ;
+
     cout << schoolBSTGrad.getHeight() ;
 
     BinarySearchTreeSname schoolBSTSname ;
 
     int j = 0 ;
     while ( j < schoolVector.size() ){
-        schoolBSTSname.insert( schoolVector[i] ) ;
+        schoolBSTSname.insert( schoolVector[j] ) ;
         j++ ;
     }
 
-    schoolBSTSname.inorderTraversal() ;
+
     cout << schoolBSTSname.getHeight() ;
+
+    cout << "---------\n" ;
+    schoolBSTSname.printSname("中原大學") ;
 
 }
