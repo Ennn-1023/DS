@@ -59,8 +59,11 @@ private:
 
     void snamePrint(TreeNode* root, string sname) {
 
-        while (root != nullptr || sname == root->data.sname ) {
+        while (root != nullptr) {
             if ( sname >= root->data.sname ){
+                if ( sname == root->data.sname ){
+                    cout << root->data.sname << "\n";
+                }
                 root = root->right ;
             }
             else{
@@ -68,10 +71,6 @@ private:
             }
         }
 
-        while (root != nullptr || sname != root->data.sname ) {
-            cout << root->data.sname ;
-            root = root->right ;
-        }
     }
 
     int calculateHeight(TreeNode* root) {
@@ -193,7 +192,7 @@ public:
         return calculateHeight(root);
     }
 
-    int gradMore( int gradNum ) {
+    void gradMore( int gradNum ) {
         gradRecursive(root, gradNum) ;
     }
 
@@ -285,7 +284,7 @@ public:
 int main(){
     SchoolList schoolList;
     schoolList.readFile() ;
-    schoolList.print();
+    // schoolList.print();
 
     vector<schoolType> schoolVector ;
     schoolVector = schoolList.returnVector() ;
@@ -297,12 +296,15 @@ int main(){
         schoolBSTGrad.insert( schoolVector[i] ) ;
         i++ ;
     }
+
     schoolBSTGrad.gradMore(50) ;
 
 
-    cout << schoolBSTGrad.getHeight() ;
+
+    cout << "gradH" << schoolBSTGrad.getHeight() << endl ;
 
     BinarySearchTreeSname schoolBSTSname ;
+
 
     int j = 0 ;
     while ( j < schoolVector.size() ){
@@ -310,10 +312,9 @@ int main(){
         j++ ;
     }
 
+    cout << "snameH" << schoolBSTSname.getHeight() << endl ;
 
-    cout << schoolBSTSname.getHeight() ;
 
-    cout << "---------\n" ;
     schoolBSTSname.printSname("中原大學") ;
 
 }
