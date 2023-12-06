@@ -126,6 +126,20 @@ private:
         }
     }
 
+
+    void gradRecursive(TreeNode* root, int gradNum) {
+
+        if (root != nullptr) {
+            if (gradNum <= root->data.ngrad) {
+                cout << root->data.ngrad << "\n";
+            }
+            if ( gradNum < root->data.ngrad ){
+                gradRecursive(root->left, gradNum);
+            }
+            gradRecursive(root->right, gradNum);
+        }
+    }
+
     int calculateHeight(TreeNode* root) {
         if (root == nullptr) {
             return 0;
@@ -155,6 +169,10 @@ public:
 
     int getHeight() {
         return calculateHeight(root);
+    }
+
+    int gradMore( int gradNum ) {
+        gradRecursive(root, gradNum) ;
     }
 
 
@@ -257,6 +275,7 @@ int main(){
         schoolBSTGrad.insert( schoolVector[i] ) ;
         i++ ;
     }
+    schoolBSTGrad.gradMore(50) ;
 
     schoolBSTGrad.inorderTraversal() ;
     cout << schoolBSTGrad.getHeight() ;
@@ -271,6 +290,5 @@ int main(){
 
     schoolBSTSname.inorderTraversal() ;
     cout << schoolBSTSname.getHeight() ;
-
 
 }
