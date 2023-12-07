@@ -305,7 +305,8 @@ int main(){
     SchoolList schoolList;
     vector<schoolType> schoolVector ;
 
-    BinarySearchTreeGrad schoolBSTGrad;
+
+    BinarySearchTreeGrad schoolBSTGrad ;
     BinarySearchTreeSname schoolBSTSname ;
     int cmd = -1;
     string sName;
@@ -364,6 +365,5 @@ int main(){
                 break;
         }
     } while ( cmd != 0 );
-
 
 }
