@@ -14,10 +14,10 @@ typedef struct sT
     string sname;
     string dname;
     string type;
-    string level ;
+    string level;
     int nstud;
-    int nprof ;
-    int ngrad ;
+    int nprof;
+    int ngrad;
 } schoolType;
 
 class BinarySearchTreeSname {
@@ -38,10 +38,17 @@ private:
             return new TreeNode(value);
         }
 
-
+        /*
         if ((value.sname.compare(root->data.sname) < 0)){
             root->left = insertRecursive(root->left, value);
         } else if ((value.sname.compare(root->data.sname) >= 0)) {
+            root->right = insertRecursive(root->right, value);
+        }
+        */
+
+        if (value.sname < root->data.sname){
+            root->left = insertRecursive(root->left, value);
+        } else if (value.sname >= root->data.sname) {
             root->right = insertRecursive(root->right, value);
         }
 
@@ -58,9 +65,14 @@ private:
     }
 
     void snamePrint(TreeNode* root, string sname) {
-
-        while (root != nullptr || sname == root->data.sname ) {
+        int count = 0;
+        while (root != nullptr) {
             if ( sname >= root->data.sname ){
+                if ( sname == root->data.sname ){
+                    count++;
+                    cout << "\n[" << count << "]\t";
+                    printItem(root->data);
+                }
                 root = root->right ;
             }
             else{
@@ -68,10 +80,6 @@ private:
             }
         }
 
-        while (root != nullptr || sname != root->data.sname ) {
-            cout << root->data.sname ;
-            root = root->right ;
-        }
     }
 
     int calculateHeight(TreeNode* root) {
@@ -107,6 +115,11 @@ public:
 
     int getHeight() {
         return calculateHeight(root);
+    }
+
+    void printItem( const schoolType& item ) {
+        cout << item.sname << "\t" << item.dname << "\t" << item.type << "\t" << item.level << "\t";
+        cout << item.nstud << "\t" << item.nprof << "\t" << item.ngrad;
     }
 
 
@@ -150,10 +163,11 @@ private:
 
 
     void gradRecursive(TreeNode* root, int gradNum) {
-
+        int count = 0;
         if (root != nullptr) {
             if (gradNum <= root->data.ngrad) {
-                cout << root->data.ngrad << "\n";
+                cout << "\n[" << count << "]\t";
+                printItem( root->data );
             }
             if ( gradNum < root->data.ngrad ){
                 gradRecursive(root->left, gradNum);
@@ -169,6 +183,7 @@ private:
 
         int leftHeight = calculateHeight(root->left);
         int rightHeight = calculateHeight(root->right);
+
 
         return 1 + max(leftHeight, rightHeight);
     }
@@ -193,10 +208,13 @@ public:
         return calculateHeight(root);
     }
 
-    int gradMore( int gradNum ) {
+    void gradMore( int gradNum ) {
         gradRecursive(root, gradNum) ;
     }
-
+    void printItem( const schoolType& item ) {
+        cout << item.sname << "\t" << item.dname << "\t" << item.type << "\t" << item.level << "\t";
+        cout << item.nstud << "\t" << item.nprof << "\t" << item.ngrad;
+    }
 
 };
 
@@ -243,7 +261,7 @@ public:
                     pos = buf.find_first_of('\t', pre);
                     cut = buf.substr(pre, pos - pre);
                     switch (++fNo) {
-                        case 2: oneR.sname = cut; break;
+                        case 2: oneR.sname = cut;break;
                         case 4: oneR.dname = cut; break;
                         case 5: oneR.type = cut; break;
                         case 6: oneR.level = cut; break;
@@ -283,37 +301,69 @@ public:
 
 
 int main(){
+
     SchoolList schoolList;
-    schoolList.readFile() ;
-    schoolList.print();
-
     vector<schoolType> schoolVector ;
-    schoolVector = schoolList.returnVector() ;
 
-    BinarySearchTreeGrad schoolBSTGrad ;
-
-    int i = 0 ;
-    while ( i < schoolVector.size() ){
-        schoolBSTGrad.insert( schoolVector[i] ) ;
-        i++ ;
-    }
-    schoolBSTGrad.gradMore(50) ;
-
-
-    cout << schoolBSTGrad.getHeight() ;
-
+    BinarySearchTreeGrad schoolBSTGrad;
     BinarySearchTreeSname schoolBSTSname ;
+    int cmd = -1;
+    string sName;
+    int n;
+    bool dataExist = false;
+    do {
+        cout << "\n*** University Graduate Information System ***"
+                "\n* 0. Quit                                    *"
+                "\n* 1. Create Two Binary Search Trees          *"
+                "\n* 2. Search by Number of Graduates           *"
+                "\n* 3. Search by School Name                   *"
+                "\n**********************************************"
+                "\nInput a command(0, 1-4): ";
+        cin >> cmd;
+        switch (cmd) {
+            case 0:
+                break;
+            case 1:
+                schoolList.reset();
+                dataExist = schoolList.readFile();
+                if ( !dataExist ) {
+                    cout << "\nThere is no data!";
+                    break;
+                }
+                schoolVector = schoolList.returnVector() ;
+                for ( int i = 0; i < schoolVector.size(); i++ ) {
+                    schoolBSTSname.insert( schoolVector[i] ) ;
+                }
+                for ( int i = 0; i < schoolVector.size(); i++ ) {
+                    schoolBSTGrad.insert( schoolVector[i] ) ;
+                }
+                cout << endl << "Tree height {School name} = " << schoolBSTGrad.getHeight();
+                cout << endl << "Tree height {Number of graduates} = " << schoolBSTSname.getHeight();
+                break;
+            case 2:
+                // search by graduates
+                if ( !dataExist ) {
+                    cout << "\nPlease choose command 1 first!";
+                    break;
+                }
+                cout << "\nInput the number of graduates: ";
+                cin >> n;
+                schoolBSTGrad.gradMore(n);
+                break;
+            case 3:
+                if ( !dataExist ) {
+                    cout << "\nPlease choose command 1 first!";
+                    break;
+                }
+                cout << "\nInput a school name: ";
+                cin >> sName;
+                schoolBSTSname.printSname(sName);
+                break;
+            default:
+                cout << "\nCommand does not exist!";
+                break;
+        }
+    } while ( cmd != 0 );
 
-    int j = 0 ;
-    while ( j < schoolVector.size() ){
-        schoolBSTSname.insert( schoolVector[j] ) ;
-        j++ ;
-    }
-
-
-    cout << schoolBSTSname.getHeight() ;
-
-    cout << "---------\n" ;
-    schoolBSTSname.printSname("中原大學") ;
 
 }
