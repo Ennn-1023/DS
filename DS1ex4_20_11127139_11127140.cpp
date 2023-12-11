@@ -80,6 +80,10 @@ private:
             }
         }
 
+        if ( count == 0 ) {
+            cout << "\nThere is no match!";
+        }
+
     }
 
     int calculateHeight(TreeNode* root) {
@@ -162,18 +166,20 @@ private:
     }
 
 
-    void gradRecursive(TreeNode* root, int gradNum) {
-        int count = 0;
+    void gradRecursive(TreeNode* root, int gradNum, int& count) {
+
         if (root != nullptr) {
             if (gradNum <= root->data.ngrad) {
+                count++;
                 cout << "\n[" << count << "]\t";
                 printItem( root->data );
             }
             if ( gradNum < root->data.ngrad ){
-                gradRecursive(root->left, gradNum);
+                gradRecursive(root->left, gradNum, count);
             }
-            gradRecursive(root->right, gradNum);
+            gradRecursive(root->right, gradNum, count);
         }
+
     }
 
     int calculateHeight(TreeNode* root) {
@@ -209,7 +215,10 @@ public:
     }
 
     void gradMore( int gradNum ) {
-        gradRecursive(root, gradNum) ;
+        int count = 0;
+        gradRecursive(root, gradNum, count) ;
+        if (count == 0)
+            cout << "\nThere is no match!";
     }
     void printItem( const schoolType& item ) {
         cout << item.sname << "\t" << item.dname << "\t" << item.type << "\t" << item.level << "\t";
