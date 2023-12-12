@@ -32,6 +32,49 @@ private:
 
     TreeNode* root;
 
+private:
+    TreeNode* deleteNodeRecursive(TreeNode* root, const string& sname) {
+        if (root == nullptr) {
+            return nullptr;
+        }
+
+        if (sname < root->data.sname) {
+            root->left = deleteNodeRecursive(root->left, sname);
+        } else if (sname > root->data.sname) {
+            root->right = deleteNodeRecursive(root->right, sname);
+        } else {
+            // Node with the matching sname found, perform deletion
+            if (root->left == nullptr) {
+                cout << root->data.sname << "-----" <<endl ;
+                TreeNode* temp = root->right;
+                delete root;
+                return temp;
+            } else if (root->right == nullptr) {
+                TreeNode* temp = root->left;
+                delete root;
+                return temp;
+            }
+
+            // Node with two children, get the inorder successor (smallest in the right subtree)
+            TreeNode* temp = findMinNode(root->right);
+
+            // Copy the inorder successor's data to this node
+            root->data = temp->data;
+            // Delete the inorder successor
+            root->right = deleteNodeRecursive(root->right, temp->data.sname);
+        }
+
+        return root;
+    }
+
+    TreeNode* findMinNode(TreeNode* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
+
+
     // Recursive helper function for inserting nodes
     TreeNode* insertRecursive(TreeNode* root, const schoolType& value) {
         if (root == nullptr) {
@@ -104,6 +147,11 @@ public:
         TreeNode* root = this->root;
         clear(root);
     }
+
+    void deleteNode(const string& sname) {
+        root = deleteNodeRecursive(root, sname);
+    }
+
     void reset() {
         TreeNode* root = this->root;
         clear(root);
@@ -155,6 +203,47 @@ private:
     };
 
     TreeNode* root;
+
+    TreeNode* deleteNodeRecursive(TreeNode* root, const string& sname) {
+        if (root == nullptr) {
+            return nullptr;
+        }
+
+        if (sname < root->data.sname) {
+            root->left = deleteNodeRecursive(root->left, sname);
+        } else if (sname > root->data.sname) {
+            root->right = deleteNodeRecursive(root->right, sname);
+        } else {
+            // Node with the matching sname found, perform deletion
+            if (root->left == nullptr) {
+                cout << root->data.sname << "-----" <<endl ;
+                TreeNode* temp = root->right;
+                delete root;
+                return temp;
+            } else if (root->right == nullptr) {
+                TreeNode* temp = root->left;
+                delete root;
+                return temp;
+            }
+
+            // Node with two children, get the inorder successor (smallest in the right subtree)
+            TreeNode* temp = findMinNode(root->right);
+
+            // Copy the inorder successor's data to this node
+            root->data = temp->data;
+            // Delete the inorder successor
+            root->right = deleteNodeRecursive(root->right, temp->data.sname);
+        }
+
+        return root;
+    }
+
+    TreeNode* findMinNode(TreeNode* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
 
     // Recursive helper function for inserting nodes
     TreeNode* insertRecursive(TreeNode* root, const schoolType& value) {
@@ -254,34 +343,6 @@ public:
         cout << item.sname << "\t" << item.dname << "\t" << item.type << "\t" << item.level << "\t";
         cout << item.nstud << "\t" << item.nprof << "\t" << item.ngrad;
     }
-    TreeNode* deleteNodes ( TreeNode* root, const string& sName ) {
-        if ( root == nullptr )
-            return nullptr;
-
-        root->left = deleteNodes(root->left, sName);
-        root->right = deleteNodes(root->right, sName);
-
-        if ( root->data.sname.compare(sName) == 0 ) {
-            if ( root->left == nullptr ) {
-                return root->right;
-            }
-            else if ( root->right == nullptr ) {
-                return root->left;
-            }
-            else {
-                root = findMin(root->right);
-
-            }
-        }
-    }
-    TreeNode* findMin(TreeNode* node) {
-
-        while (node->left) {
-            node = node->left;
-        }
-        return node;
-    }
-
 };
 
 class SchoolList {
@@ -406,8 +467,8 @@ int main(){
                 for ( int i = 0; i < schoolVector.size(); i++ ) {
                     schoolBSTGrad.insert( schoolVector[i] ) ;
                 }
-                cout << endl << "Tree height {School name} = " << schoolBSTGrad.getHeight();
-                cout << endl << "Tree height {Number of graduates} = " << schoolBSTSname.getHeight();
+                cout << endl << "Tree height {School name} = " << schoolBSTSname.getHeight();
+                cout << endl << "Tree height {Number of graduates} = " << schoolBSTGrad.getHeight();
                 break;
             case 2:
                 // search by graduates
@@ -427,6 +488,19 @@ int main(){
                 cout << "\nInput a school name: ";
                 cin >> sName;
                 schoolBSTSname.printSname(sName);
+                break;
+            case 4:
+                if (!dataExist) {
+                    cout << "\nPlease choose command 1 first!";
+                    break;
+                }
+                cout << "\nInput a school name to delete: ";
+                cin >> sName;
+                schoolBSTSname.deleteNode(sName);
+                cout << "\nNode(s) with sname '" << sName << "' deleted.";
+                schoolBSTSname.inorderTraversal() ;
+                cout << endl << "Tree height {School name} = " << schoolBSTSname.getHeight();
+                cout << endl << "Tree height {Number of graduates} = " << schoolBSTGrad.getHeight();
                 break;
             default:
                 cout << "\nCommand does not exist!";
