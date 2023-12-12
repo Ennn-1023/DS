@@ -58,7 +58,7 @@ private:
             }
 
             // Node with two children, get the inorder successor (smallest in the right subtree)
-            schoolType temp = findMinNode(root->right);
+            schoolType temp = findMaxNode(root->right);
 
             // Copy the inorder successor's data to this node
             root->data = temp;
@@ -66,7 +66,19 @@ private:
 
         return root;
     }
-
+    schoolType findMaxNode(TreeNode* node) {
+        TreeNode* pNode = node;
+        node = node->left;
+        if ( node == NULL )
+            while (node->right != nullptr) {
+                pNode = node;
+                node = node->left;
+            }
+        schoolType temp = node->data;
+        pNode->right = node->left;
+        delete node;
+        return temp;
+    }
     schoolType findMinNode(TreeNode* node) {
         TreeNode* pNode = node;
         node = node->right;
@@ -230,7 +242,6 @@ private:
             return nullptr;
         }
 
-
         root->left = deleteNodeRecursive(root->left, sname, count);
         root->right = deleteNodeRecursive(root->right, sname, count);
 
@@ -248,13 +259,26 @@ private:
             }
 
             // Node with two children, get the inorder successor (smallest in the right subtree)
-            schoolType temp = findMinNode(root);
+            schoolType temp = findMaxNode(root);
 
             // Copy the inorder successor's data to this node
             root->data = temp;
         }
 
         return root;
+    }
+    schoolType findMaxNode(TreeNode* node) {
+        TreeNode* pNode = node;
+        node = node->left;
+        if ( node == NULL )
+            while (node->right != nullptr) {
+                pNode = node;
+                node = node->left;
+            }
+        schoolType temp = node->data;
+        pNode->right = node->left;
+        delete node;
+        return temp;
     }
 
     schoolType findMinNode(TreeNode* node) {
