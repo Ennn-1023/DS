@@ -100,7 +100,22 @@ private:
 public:
     // Constructor
     BinarySearchTreeSname() : root(nullptr) {}
-
+    ~BinarySearchTreeSname() {
+        TreeNode* root = this->root;
+        clear(root);
+    }
+    void reset() {
+        TreeNode* root = this->root;
+        clear(root);
+        this->root = nullptr;
+    }
+    void clear( TreeNode* root ) {
+        if ( root == nullptr )
+            return;
+        clear(root->right);
+        clear(root->left);
+        delete root;
+    }
     // Public interface for inserting nodes
     void insert(const schoolType& value) {
         root = insertRecursive(root, value);
@@ -197,7 +212,22 @@ private:
 public:
     // Constructor
     BinarySearchTreeGrad() : root(nullptr) {}
-
+    ~BinarySearchTreeGrad() {
+        TreeNode* root = this->root;
+        clear(root);
+    }
+    void reset() {
+        TreeNode* root = this->root;
+        clear(root);
+        this->root = nullptr;
+    }
+    void clear( TreeNode* root ) {
+        if ( root == nullptr )
+            return;
+        clear(root->right);
+        clear(root->left);
+        delete root;
+    }
     // Public interface for inserting nodes
     void insert(const schoolType& value) {
         root = insertRecursive(root, value);
@@ -223,6 +253,33 @@ public:
     void printItem( const schoolType& item ) {
         cout << item.sname << "\t" << item.dname << "\t" << item.type << "\t" << item.level << "\t";
         cout << item.nstud << "\t" << item.nprof << "\t" << item.ngrad;
+    }
+    TreeNode* deleteNodes ( TreeNode* root, const string& sName ) {
+        if ( root == nullptr )
+            return nullptr;
+
+        root->left = deleteNodes(root->left, sName);
+        root->right = deleteNodes(root->right, sName);
+
+        if ( root->data.sname.compare(sName) == 0 ) {
+            if ( root->left == nullptr ) {
+                return root->right;
+            }
+            else if ( root->right == nullptr ) {
+                return root->left;
+            }
+            else {
+                root = findMin(root->right);
+
+            }
+        }
+    }
+    TreeNode* findMin(TreeNode* node) {
+
+        while (node->left) {
+            node = node->left;
+        }
+        return node;
     }
 
 };
@@ -336,6 +393,8 @@ int main(){
             case 1:
                 schoolList.reset();
                 dataExist = schoolList.readFile();
+                schoolBSTSname.reset();
+                schoolBSTGrad.reset();
                 if ( !dataExist ) {
                     cout << "\nThere is no data!";
                     break;
