@@ -1,5 +1,5 @@
-// 11127139 é™³æ©
-// 11127140 å§œç¾©æ–°
+// 11127139 ³¯®¦
+// 11127140 «¸¸q·s
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -57,10 +57,11 @@ private:
                 return temp;
             }
 
-            // Node with two children, get the inorder successor (smallest in the right subtree)
-            schoolType temp = findMaxNode(root->right);
+            // Node with two children, get the biggest in the left subtree)
+            schoolType temp = findMaxNode(root);
 
             // Copy the inorder successor's data to this node
+
             root->data = temp;
         }
 
@@ -69,25 +70,34 @@ private:
     schoolType findMaxNode(TreeNode* node) {
         TreeNode* pNode = node;
         node = node->left;
-        if ( node == NULL )
-            while (node->right != nullptr) {
-                pNode = node;
-                node = node->left;
-            }
+        int count = 0;
+        while (node->right != nullptr) {
+            count++;
+            pNode = node;
+            node = node->right;
+        }
         schoolType temp = node->data;
-        pNode->right = node->left;
+        if ( count == 0 )
+            pNode->left = node->left;
+        else
+            pNode->right = node->left;
         delete node;
         return temp;
     }
     schoolType findMinNode(TreeNode* node) {
         TreeNode* pNode = node;
         node = node->right;
+        int count = 0;
         while (node->left != nullptr) {
+            count++;
             pNode = node;
             node = node->left;
         }
         schoolType temp = node->data;
-        pNode->left = node->right;
+        if ( count == 0 ) // special case, min node is the first node in the right subtree
+            pNode->right = node->right;
+        else
+            pNode->left = node->right;
         delete node;
         return temp;
     }
@@ -270,13 +280,17 @@ private:
     schoolType findMaxNode(TreeNode* node) {
         TreeNode* pNode = node;
         node = node->left;
-        if ( node == NULL )
-            while (node->right != nullptr) {
-                pNode = node;
-                node = node->left;
-            }
+        int count = 0;
+        while (node->right != nullptr) {
+            count++;
+            pNode = node;
+            node = node->right;
+        }
         schoolType temp = node->data;
-        pNode->right = node->left;
+        if ( count == 0 ) // special case: max node is the first node in the left subtree
+            pNode->left = node->left;
+        else
+            pNode->right = node->left;
         delete node;
         return temp;
     }
@@ -284,13 +298,17 @@ private:
     schoolType findMinNode(TreeNode* node) {
         TreeNode* pNode = node;
         node = node->right;
-        if ( node == NULL )
+        int count = 0;
         while (node->left != nullptr) {
+            count++;
             pNode = node;
             node = node->left;
         }
         schoolType temp = node->data;
-        pNode->left = node->right;
+        if ( count == 0 ) // special case, first node in the right subtree
+            pNode->right = node->right;
+        else
+            pNode->left = node->right;
         delete node;
         return temp;
     }
