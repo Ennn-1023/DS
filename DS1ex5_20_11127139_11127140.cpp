@@ -20,19 +20,20 @@ typedef struct pT {
     int def; // defense
 } pokemonType;
 
-class SchoolList {
+class pokemonList {
 
 private:
     vector<pokemonType> pSet;
     string fileID;
+
 public:
     void reset() {
         this->pSet.clear();
         this->fileID.clear();
     }
 
-    SchoolList() { reset(); }
-    ~SchoolList() { reset(); }
+    pokemonList() { reset(); }
+    ~pokemonList() { reset(); }
 
 
     bool readFile(){
@@ -63,17 +64,16 @@ public:
                     pos = buf.find_first_of('\t', pre);
                     cut = buf.substr(pre, pos - pre);
                     switch (++fNo) {
-                        case 2: oneR.sname = cut;break;
-                        case 4: oneR.dname = cut; break;
-                        case 5: oneR.type = cut; break;
-                        case 6: oneR.level = cut; break;
-                        case 7: oneR.nstud = atoi(cut.c_str()); break;
-                        case 8: oneR.nprof = atoi(cut.c_str()); break;
-                        case 9: oneR.ngrad = atoi(cut.c_str()); break;
+                        case 1: oneR.no = atoi(cut.c_str());break;
+                        case 2: oneR.name = cut; break;
+                        case 3: oneR.tp1 = cut; break;
+                        case 6: oneR.hp = atoi(cut.c_str()); break;
+                        case 7: oneR.atk = atoi(cut.c_str()); break;
+                        case 8: oneR.def = atoi(cut.c_str()); break;
                         default: break; //end switch
                     }
                     pre = ++pos;
-                } while ((pos > 0) && (fNo < 10));
+                } while ((pos > 0) && (fNo < 9));
                 this->pSet.push_back(oneR); } //end outer-while inFile.close();
         } // end else
         if (!this->pSet.size()){
@@ -84,18 +84,40 @@ public:
     } // end readFile
 
     void print() {
-        cout << "School Information:" << endl;
-        cout << setw(15) << "School Name" << setw(15) << "Department" << setw(10) << "Type"
-             << setw(10) << "Level" << setw(10) << "Students" << setw(10) << "Professors"
-             << setw(10) << "Graduates" << endl;
-        for (const auto& record : pSet) {
-            cout << setw(15) << record.sname << setw(15) << record.dname << setw(10)
-                 << record.type << setw(10) << record.level << setw(10) << record.nstud
-                 << setw(10) << record.nprof << setw(10) << record.ngrad << endl;
+        cout << "\n#\tName\tType1\tHP\tAttack\tDefence" << endl;
+        for ( int i = 0; i < pSet.size(); i++ ) {
+            cout << "\n[" << i+1 << "]\t";
+            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
+            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
         }
     }
-
-    vector<pT> returnVector() {
-        return pSet ;
-    }
 };
+
+int main() {
+    int cmd = -1;
+    string fileNo;
+    pokemonList aList;
+    do {
+        cout << "\n***** Pokemon Tree and Heap *****"
+                "\n* 0. QUIT                       *"
+                "\n* 1. Read a file to build BST   *"
+                "\n* 2. Transform it into Max Heap *"
+                "\n*********************************"
+                "\nInput a choice(0, 1, 2): ";
+        cin >> cmd;
+
+        switch (cmd) {
+            case 0:
+                break;
+            case 1:
+                aList.readFile();
+                aList.print();
+                break;
+            default:
+                cout << "\nCommand does not exist!";
+        }
+
+    } while ( cmd != 0);
+
+    return 0;
+}
