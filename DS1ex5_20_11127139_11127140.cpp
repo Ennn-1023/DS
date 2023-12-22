@@ -126,7 +126,9 @@ public:
 
     pokemonList() { reset(); }
     ~pokemonList() { reset(); }
-
+    bool isEmpty() {
+        return fileID.empty();
+    }
     void buildBST() {
         for ( int i = 0; i < pSet.size(); i++ ) {
             aBST.insert(pSet[i].hp, i);
@@ -136,8 +138,12 @@ public:
         fstream inFile;
         string fileName;
         this->reset();
-        cout << endl << "Input a file number: ";
+        cout << endl << "Input a file number [0: quit]: ";
         cin >> this->fileID;
+        if ( fileID == "0" ) {
+            reset();
+            return true;
+        }
         fileName = "input" + fileID + ".txt";
         inFile.open(fileName.c_str(), fstream::in);
         if (!inFile.is_open()){
@@ -178,21 +184,24 @@ public:
     } // end readFile
 
     void print() {
-        cout << "\n#\tName\tType1\tHP\tAttack\tDefence" << endl;
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
         for ( int i = 0; i < pSet.size(); i++ ) {
             cout << "\n[" << i+1 << "]\t";
             cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
             cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
         }
         int leftIdx = aBST.findLeftMost(), rightIdx = aBST.findRightMost();
+        cout << "\nHP tree height = " << aBST.getHeight();
         cout << "\nLeftmost node:";
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
         cout << "\n[" << leftIdx+1 << "]\t";
         cout << pSet[leftIdx].no << "\t" << pSet[leftIdx].name << "\t" << pSet[leftIdx].tp1 << "\t";
         cout << pSet[leftIdx].hp << "\t" << pSet[leftIdx].atk << "\t" << pSet[leftIdx].def;
         cout << "\nRightmost node:";
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
         cout << "\n[" << rightIdx+1 << "]\t";
         cout << pSet[rightIdx].no << "\t" << pSet[rightIdx].name << "\t" << pSet[rightIdx].tp1 << "\t";
-        cout << pSet[rightIdx].hp << "\t" << pSet[rightIdx].atk << "\t" << pSet[rightIdx].def;
+        cout << pSet[rightIdx].hp << "\t" << pSet[rightIdx].atk << "\t" << pSet[rightIdx].def << endl;
     }
 
     vector<pokemonType> returnVector(){
@@ -205,16 +214,16 @@ class pokemonHeap {
 private:
     vector<pokemonType> pSet;
 
-    int calculateHeight(int rootIndex, int size) {
-        if (rootIndex >= size) {
+    int calculateHeight(int rootIndex) {
+        if (rootIndex >= pSet.size()) {
             return 0;
         }
 
         int leftChildIndex = 2 * rootIndex + 1;
         int rightChildIndex = 2 * rootIndex + 2;
 
-        int leftSubtreeHeight = calculateHeight(leftChildIndex, size);
-        int rightSubtreeHeight = calculateHeight(rightChildIndex, size);
+        int leftSubtreeHeight = calculateHeight(leftChildIndex);
+        int rightSubtreeHeight = calculateHeight(rightChildIndex);
 
         return max(leftSubtreeHeight, rightSubtreeHeight) + 1;
     }
@@ -258,7 +267,7 @@ public:
 
 
     void print() {
-        cout << "\n#\tName\tType1\tHP\tAttack\tDefence" << endl;
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence" << endl;
         for (int i = 0; i < pSet.size(); i++) {
             cout << "\n[" << i + 1 << "]\t";
             cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
@@ -282,24 +291,24 @@ public:
             return;
         }
 
-
-        for ( int i = 0 ; i < pSet.size(); i++ ) {
-            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
-            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def << endl;
-        }
-
-        cout << "\nLeftmost Node at the Bottom: ";
-        int h = calculateHeight(0, pSet.size()) ;
-
-        cout << pSet[pow(2,h-1) - 1].no << "\t" << pSet[pow(2,h-1) - 1].name << "\t" << pSet[pow(2,h-1) - 1].tp1 << "\t";
-        cout << pSet[pow(2,h-1) - 1].hp << "\t" << pSet[pow(2,h-1) - 1].atk << "\t" << pSet[pow(2,h-1) - 1].def << endl;
-
+        print();
+        int h = getHeight();
+        cout << "\nHp heap height = " << h;
+        cout << "\nLeftmost Node: ";
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
+        int idx = pow(2,h-1) - 1;
+        cout << "\n[" << idx << "]\t";
+        cout << pSet[idx].no << "\t" << pSet[idx].name << "\t" << pSet[idx].tp1 << "\t";
+        cout << pSet[idx].hp << "\t" << pSet[idx].atk << "\t" << pSet[idx].def;
+        cout << "\nBottom: ";
+        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
+        cout << "\n[" << pSet.size()-1 << "]\t";
         cout << pSet[pSet.size()-1].no << "\t" << pSet[pSet.size()-1].name << "\t" << pSet[pSet.size()-1].tp1 << "\t";
         cout << pSet[pSet.size()-1].hp << "\t" << pSet[pSet.size()-1].atk << "\t" << pSet[pSet.size()-1].def << endl;
     }
 
     int getHeight() {
-        cout << calculateHeight(0, pSet.size()) << endl ;
+        return calculateHeight(0);
     }
 };
 
@@ -322,11 +331,18 @@ int main() {
             case 0:
                 break;
             case 1:
-                aList.readFile();
-                aList.buildBST();
-                aList.print();
+                aList.reset();
+                while ( !aList.readFile() ); // read file successfully or read: 0 quit
+                if ( !aList.isEmpty() ) {
+                    aList.buildBST();
+                    aList.print();
+                }
                 break;
             case 2:
+                if ( aList.isEmpty() ) {
+                    cout << "\n----- Execute Mission 1 first! -----\n";
+                    break;
+                }
                 aheap.inputPSet(aList.returnVector()) ;
                 aheap.buildMaxHeap();
                 aheap.getHeight();
