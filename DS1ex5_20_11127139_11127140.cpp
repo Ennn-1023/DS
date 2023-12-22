@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iomanip>
+#include <cmath>
 
 using namespace std;
 
@@ -52,8 +53,6 @@ public:
             char cstr[255];
             int fNo, pre, pos;
             inFile.getline(cstr, 255, '\n');
-            inFile.getline(cstr, 255, '\n');
-            inFile.getline(cstr, 255, '\n');
             while (inFile.getline(cstr, 255, '\n')) {
                 pT oneR;
                 string buf, cut;
@@ -91,12 +90,120 @@ public:
             cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
         }
     }
+
+    vector<pokemonType> returnVector(){
+        return pSet ;
+    }
+};
+
+class pokemonHeap {
+
+private:
+    vector<pokemonType> pSet;
+
+    int calculateHeight(int rootIndex, int size) {
+        if (rootIndex >= size) {
+            return 0;
+        }
+
+        int leftChildIndex = 2 * rootIndex + 1;
+        int rightChildIndex = 2 * rootIndex + 2;
+
+        int leftSubtreeHeight = calculateHeight(leftChildIndex, size);
+        int rightSubtreeHeight = calculateHeight(rightChildIndex, size);
+
+        return max(leftSubtreeHeight, rightSubtreeHeight) + 1;
+    }
+
+    // Helper function to maintain max heap property
+    void heapify(int rootIndex, int size) {
+        int maxIndex = rootIndex;
+        int leftChild = 2 * rootIndex + 1;
+        int rightChild = 2 * rootIndex + 2;
+
+        if (leftChild < size &&
+            (pSet[leftChild].hp > pSet[maxIndex].hp ||
+             (pSet[leftChild].hp == pSet[maxIndex].hp && leftChild < maxIndex))) {
+            maxIndex = leftChild;
+        }
+
+        if (rightChild < size &&
+            (pSet[rightChild].hp > pSet[maxIndex].hp ||
+             (pSet[rightChild].hp == pSet[maxIndex].hp && rightChild < maxIndex))) {
+            maxIndex = rightChild;
+        }
+
+        if (maxIndex != rootIndex) {
+            swap(pSet[rootIndex], pSet[maxIndex]);
+            heapify(maxIndex, size);
+        }
+    }
+
+
+public:
+    void reset() {
+        this->pSet.clear();
+    }
+
+    pokemonHeap() { reset(); }
+    ~pokemonHeap() { reset(); }
+
+    void inputPSet( vector<pokemonType> input ) {
+        pSet = input ;
+    }
+
+
+    void print() {
+        cout << "\n#\tName\tType1\tHP\tAttack\tDefence" << endl;
+        for (int i = 0; i < pSet.size(); i++) {
+            cout << "\n[" << i + 1 << "]\t";
+            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
+            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
+        }
+    }
+
+    // Function to build max heap based on hp
+    void buildMaxHeap() {
+        int size = pSet.size();
+
+        for (int i = size / 2 - 1; i >= 0; i--) {
+            heapify(i, size);
+        }
+    }
+
+    // Function to print the leftmost node at the bottom of the max heap
+    void printLeftmostBottomNode() {
+        if (pSet.empty()) {
+            cout << "\n### The heap is empty! ###" << endl;
+            return;
+        }
+
+
+        for ( int i = 0 ; i < pSet.size(); i++ ) {
+            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
+            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def << endl;
+        }
+
+        cout << "\nLeftmost Node at the Bottom: ";
+        int h = calculateHeight(0, pSet.size()) ;
+
+        cout << pSet[pow(2,h-1) - 1].no << "\t" << pSet[pow(2,h-1) - 1].name << "\t" << pSet[pow(2,h-1) - 1].tp1 << "\t";
+        cout << pSet[pow(2,h-1) - 1].hp << "\t" << pSet[pow(2,h-1) - 1].atk << "\t" << pSet[pow(2,h-1) - 1].def << endl;
+
+        cout << pSet[pSet.size()-1].no << "\t" << pSet[pSet.size()-1].name << "\t" << pSet[pSet.size()-1].tp1 << "\t";
+        cout << pSet[pSet.size()-1].hp << "\t" << pSet[pSet.size()-1].atk << "\t" << pSet[pSet.size()-1].def << endl;
+    }
+
+    int getHeight() {
+        cout << calculateHeight(0, pSet.size()) << endl ;
+    }
 };
 
 int main() {
     int cmd = -1;
     string fileNo;
     pokemonList aList;
+    pokemonHeap aheap;
     do {
         cout << "\n***** Pokemon Tree and Heap *****"
                 "\n* 0. QUIT                       *"
@@ -112,6 +219,12 @@ int main() {
             case 1:
                 aList.readFile();
                 aList.print();
+                break;
+            case 2:
+                aheap.inputPSet(aList.returnVector()) ;
+                aheap.buildMaxHeap();
+                aheap.getHeight();
+                aheap.printLeftmostBottomNode() ;
                 break;
             default:
                 cout << "\nCommand does not exist!";
