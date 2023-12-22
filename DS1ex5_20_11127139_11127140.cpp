@@ -10,7 +10,7 @@
 using namespace std;
 
 typedef struct pT {
-    string rawR; // raw data of one record
+    string rawR; // raw key of one record
     int no; // pokemon number
     string name; // pokemon name
     string tp1; // 1st type
@@ -19,23 +19,118 @@ typedef struct pT {
     int atk; // attack
     int def; // defense
 } pokemonType;
+class BSTree {
+private:
+    struct TreeNode {
+        int key; // hp
+        int index; // key index in list
+        TreeNode* left;
+        TreeNode* right;
+
+        TreeNode(int value, int idx) : key(value), index(idx), left(nullptr), right(nullptr) {}
+    };
+
+    TreeNode* root;
+
+
+
+    // Recursive helper function for inserting nodes
+    TreeNode* insertRecursive(TreeNode* root, int value, int idx) {
+        if (root == nullptr) {
+            return new TreeNode(value, idx);
+        }
+
+        if (value < root->key) {
+            root->left = insertRecursive(root->left, value, idx);
+        } else if (value >= root->key) {
+            root->right = insertRecursive(root->right, value, idx);
+        }
+
+        return root;
+    }
+
+
+    int calculateHeight(TreeNode* root) {
+        if (root == nullptr) {
+            return 0;
+        }
+
+        int leftHeight = calculateHeight(root->left);
+        int rightHeight = calculateHeight(root->right);
+
+
+        return 1 + max(leftHeight, rightHeight);
+    }
+
+public:
+    // Constructor
+    BSTree() : root(nullptr) {}
+    ~BSTree() {
+        TreeNode* root = this->root;
+        clear(root);
+    }
+    void reset() {
+        TreeNode* root = this->root;
+        clear(root);
+        this->root = nullptr;
+    }
+    void clear( TreeNode* root ) {
+        if ( root == nullptr )
+            return;
+        clear(root->right);
+        clear(root->left);
+        delete root;
+    }
+    // Public interface for inserting nodes
+    void insert(int value, int idx) {
+        root = insertRecursive(root, value, idx);
+    }
+
+    int getHeight() {
+        return calculateHeight(root);
+    }
+    int findLeftMost() {
+        TreeNode* node = this->root;
+        if ( node == nullptr )
+            return -1;
+        while ( node->left != nullptr ) {
+            node = node->left;
+        }
+        return node->index;
+    }
+    int findRightMost() {
+        TreeNode* node = this->root;
+        if ( node == nullptr )
+            return -1;
+        while ( node->right != nullptr ) {
+            node = node->right;
+        }
+        return node->index;
+    }
+
+};
 
 class pokemonList {
 
 private:
     vector<pokemonType> pSet;
     string fileID;
-
+    BSTree aBST;
 public:
     void reset() {
         this->pSet.clear();
         this->fileID.clear();
+        aBST.reset();
     }
 
     pokemonList() { reset(); }
     ~pokemonList() { reset(); }
 
-
+    void buildBST() {
+        for ( int i = 0; i < pSet.size(); i++ ) {
+            aBST.insert(pSet[i].hp, i);
+        }
+    }
     bool readFile(){
         fstream inFile;
         string fileName;
@@ -51,8 +146,6 @@ public:
         else{
             char cstr[255];
             int fNo, pre, pos;
-            inFile.getline(cstr, 255, '\n');
-            inFile.getline(cstr, 255, '\n');
             inFile.getline(cstr, 255, '\n');
             while (inFile.getline(cstr, 255, '\n')) {
                 pT oneR;
@@ -90,8 +183,18 @@ public:
             cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
             cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
         }
+        int leftIdx = aBST.findLeftMost(), rightIdx = aBST.findRightMost();
+        cout << "\nLeftmost node:";
+        cout << "\n[" << leftIdx+1 << "]\t";
+        cout << pSet[leftIdx].no << "\t" << pSet[leftIdx].name << "\t" << pSet[leftIdx].tp1 << "\t";
+        cout << pSet[leftIdx].hp << "\t" << pSet[leftIdx].atk << "\t" << pSet[leftIdx].def;
+        cout << "\nRightmost node:";
+        cout << "\n[" << rightIdx+1 << "]\t";
+        cout << pSet[rightIdx].no << "\t" << pSet[rightIdx].name << "\t" << pSet[rightIdx].tp1 << "\t";
+        cout << pSet[rightIdx].hp << "\t" << pSet[rightIdx].atk << "\t" << pSet[rightIdx].def;
     }
 };
+
 
 int main() {
     int cmd = -1;
@@ -111,6 +214,7 @@ int main() {
                 break;
             case 1:
                 aList.readFile();
+                aList.buildBST();
                 aList.print();
                 break;
             default:
