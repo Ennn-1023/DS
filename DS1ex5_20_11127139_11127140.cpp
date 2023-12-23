@@ -184,24 +184,39 @@ public:
     } // end readFile
 
     void print() {
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
-        for ( int i = 0; i < pSet.size(); i++ ) {
-            cout << "\n[" << i+1 << "]\t";
-            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
-            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
+        // print out the information
+        cout << endl << setiosflags(ios::left)
+        << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1";
+        cout << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+        int n = 0;
+        while (pow(10, n+1) <= pSet.size() ) {
+            n+=1;
         }
+        n++;
+        for ( int i = 0; i < pSet.size(); i++ ) {
+            cout << endl << "[" << resetiosflags(ios::left) << setw(n) << i+1
+            << setiosflags(ios::left) << setw(8-n-1)<< "]";
+            cout << setw(8) << pSet[i].no << setw(32) << pSet[i].name << setw(16) << pSet[i].tp1 << setw(8);
+            cout << pSet[i].hp << setw(8) << pSet[i].atk << setw(8) << pSet[i].def;
+        }
+
         int leftIdx = aBST.findLeftMost(), rightIdx = aBST.findRightMost();
         cout << "\nHP tree height = " << aBST.getHeight();
         cout << "\nLeftmost node:";
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
-        cout << "\n[" << leftIdx+1 << "]\t";
-        cout << pSet[leftIdx].no << "\t" << pSet[leftIdx].name << "\t" << pSet[leftIdx].tp1 << "\t";
-        cout << pSet[leftIdx].hp << "\t" << pSet[leftIdx].atk << "\t" << pSet[leftIdx].def;
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1"
+             << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+
+        cout << "\n[" << resetiosflags(ios::left) << setw(n) << leftIdx+1 << setiosflags(ios::left) << setw(8-n-1) << "]";
+        cout << setw(8) <<pSet[leftIdx].no << setw(32) << pSet[leftIdx].name << setw(16) << pSet[leftIdx].tp1
+             << setw(8) << pSet[leftIdx].hp << setw(8) << pSet[leftIdx].atk << setw(8) << pSet[leftIdx].def;
         cout << "\nRightmost node:";
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
-        cout << "\n[" << rightIdx+1 << "]\t";
-        cout << pSet[rightIdx].no << "\t" << pSet[rightIdx].name << "\t" << pSet[rightIdx].tp1 << "\t";
-        cout << pSet[rightIdx].hp << "\t" << pSet[rightIdx].atk << "\t" << pSet[rightIdx].def << endl;
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1"
+             << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+        cout << "\n[" << resetiosflags(ios::left) << setw(n) << rightIdx+1 << setiosflags(ios::left) << setw(8-n-1) << "]"
+             << setw(8) <<pSet[rightIdx].no << setw(32) << pSet[rightIdx].name << setw(16) << pSet[rightIdx].tp1
+             << setw(8) << pSet[rightIdx].hp << setw(8) << pSet[rightIdx].atk << setw(8) << pSet[rightIdx].def;
     }
 
     vector<pokemonType> returnVector(){
@@ -267,11 +282,19 @@ public:
 
 
     void print() {
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence" << endl;
-        for (int i = 0; i < pSet.size(); i++) {
-            cout << "\n[" << i + 1 << "]\t";
-            cout << pSet[i].no << "\t" << pSet[i].name << "\t" << pSet[i].tp1 << "\t";
-            cout << pSet[i].hp << "\t" << pSet[i].atk << "\t" << pSet[i].def;
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1";
+        cout << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+        int n = 0;
+        while (pow(10, n+1) <= pSet.size() ) {
+            n+=1;
+        }
+        n++;
+        for ( int i = 0; i < pSet.size(); i++ ) {
+            cout << endl << "[" << resetiosflags(ios::left) << setw(n) << i
+                 << setiosflags(ios::left) << setw(8-n-1)<< "]";
+            cout << setw(8) << pSet[i].no << setw(32) << pSet[i].name << setw(16) << pSet[i].tp1 << setw(8);
+            cout << pSet[i].hp << setw(8) << pSet[i].atk << setw(8) << pSet[i].def;
         }
     }
 
@@ -291,20 +314,32 @@ public:
             return;
         }
 
-        print();
+        print(); // print out the heap
         int h = getHeight();
-        cout << "\nHp heap height = " << h;
-        cout << "\nLeftmost Node: ";
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
+        cout << "\nHP heap height = " << h;
+        cout << "\nLeftmost node: ";
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1";
+        cout << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+
         int idx = pow(2,h-1) - 1;
-        cout << "\n[" << idx << "]\t";
-        cout << pSet[idx].no << "\t" << pSet[idx].name << "\t" << pSet[idx].tp1 << "\t";
-        cout << pSet[idx].hp << "\t" << pSet[idx].atk << "\t" << pSet[idx].def;
+
+        int n = 0;// how many digit of data in list
+        while (pow(10, n+1) <= pSet.size() ) {
+            n+=1;
+        }
+        n++;
+        cout << "\n[" << resetiosflags(ios::left) << setw(n) << idx << setiosflags(ios::left) << setw(8-n-1) << "]";
+        cout << setw(8) << pSet[idx].no << setw(32) << pSet[idx].name << setw(16) << pSet[idx].tp1
+             << setw(8) << pSet[idx].hp << setw(8) << pSet[idx].atk << setw(8) << pSet[idx].def;
         cout << "\nBottom: ";
-        cout << "\n\t#\tName\tType1\tHP\tAttack\tDefence";
-        cout << "\n[" << pSet.size()-1 << "]\t";
-        cout << pSet[pSet.size()-1].no << "\t" << pSet[pSet.size()-1].name << "\t" << pSet[pSet.size()-1].tp1 << "\t";
-        cout << pSet[pSet.size()-1].hp << "\t" << pSet[pSet.size()-1].atk << "\t" << pSet[pSet.size()-1].def << endl;
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1";
+        cout << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+        cout << "\n[" << resetiosflags(ios::left) << setw(n) << pSet.size()-1 << setiosflags(ios::left) << setw(8-n-1) << "]";
+        cout << setw(8) << pSet[pSet.size()-1].no << setw(32) << pSet[pSet.size()-1].name
+             << setw(16) << pSet[pSet.size()-1].tp1 << setw(8) << pSet[pSet.size()-1].hp
+             << setw(8) << pSet[pSet.size()-1].atk << setw(8) << pSet[pSet.size()-1].def << endl;
     }
 
     int getHeight() {
