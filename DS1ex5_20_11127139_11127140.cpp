@@ -24,11 +24,14 @@ class BSTree {
 private:
     struct TreeNode {
         int key; // hp
-        int index; // key index in list
+        vector<int> index; // key index in list
         TreeNode* left;
         TreeNode* right;
 
-        TreeNode(int value, int idx) : key(value), index(idx), left(nullptr), right(nullptr) {}
+        TreeNode(int value, int idx) : key(value), left(nullptr), right(nullptr) {
+            index.clear();
+            index.push_back(idx);
+        }
     };
 
     TreeNode* root;
@@ -43,9 +46,10 @@ private:
 
         if (value < root->key) {
             root->left = insertRecursive(root->left, value, idx);
-        } else if (value >= root->key) {
+        } else if (value > root->key) {
             root->right = insertRecursive(root->right, value, idx);
-        }
+        } else // ==
+            root->index.push_back(idx);
 
         return root;
     }
@@ -90,19 +94,17 @@ public:
     int getHeight() {
         return calculateHeight(root);
     }
-    int findLeftMost() {
+    vector<int> findLeftMost() {
         TreeNode* node = this->root;
-        if ( node == nullptr )
-            return -1;
+
         while ( node->left != nullptr ) {
             node = node->left;
         }
         return node->index;
     }
-    int findRightMost() {
+    vector<int> findRightMost() {
         TreeNode* node = this->root;
-        if ( node == nullptr )
-            return -1;
+
         while ( node->right != nullptr ) {
             node = node->right;
         }
@@ -200,23 +202,32 @@ public:
             cout << pSet[i].hp << setw(8) << pSet[i].atk << setw(8) << pSet[i].def;
         }
 
-        int leftIdx = aBST.findLeftMost(), rightIdx = aBST.findRightMost();
+        vector<int> leftIdx = aBST.findLeftMost(), rightIdx = aBST.findRightMost();
         cout << "\nHP tree height = " << aBST.getHeight();
         cout << "\nLeftmost node:";
+        /*
         cout << endl << setiosflags(ios::left)
              << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1"
              << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+        */
+        for ( int i = 0; i < leftIdx.size(); i++ ) {
+            cout << "\n[" << resetiosflags(ios::left) << setw(n) << leftIdx[i]+1 << setiosflags(ios::left) << setw(8-n-1) << "]";
+            cout << setw(8) <<pSet[leftIdx[i]].no << setw(32) << pSet[leftIdx[i]].name << setw(16) << pSet[leftIdx[i]].tp1
+                 << setw(8) << pSet[leftIdx[i]].hp << setw(8) << pSet[leftIdx[i]].atk << setw(8) << pSet[leftIdx[i]].def;
+        }
 
-        cout << "\n[" << resetiosflags(ios::left) << setw(n) << leftIdx+1 << setiosflags(ios::left) << setw(8-n-1) << "]";
-        cout << setw(8) <<pSet[leftIdx].no << setw(32) << pSet[leftIdx].name << setw(16) << pSet[leftIdx].tp1
-             << setw(8) << pSet[leftIdx].hp << setw(8) << pSet[leftIdx].atk << setw(8) << pSet[leftIdx].def;
         cout << "\nRightmost node:";
+        /*
         cout << endl << setiosflags(ios::left)
              << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1"
              << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
-        cout << "\n[" << resetiosflags(ios::left) << setw(n) << rightIdx+1 << setiosflags(ios::left) << setw(8-n-1) << "]"
-             << setw(8) <<pSet[rightIdx].no << setw(32) << pSet[rightIdx].name << setw(16) << pSet[rightIdx].tp1
-             << setw(8) << pSet[rightIdx].hp << setw(8) << pSet[rightIdx].atk << setw(8) << pSet[rightIdx].def;
+        */
+        for ( int i = 0; i < rightIdx.size(); i++ ) {
+            cout << "\n[" << resetiosflags(ios::left) << setw(n) << rightIdx[i]+1 << setiosflags(ios::left) << setw(8-n-1) << "]"
+                 << setw(8) <<pSet[rightIdx[i]].no << setw(32) << pSet[rightIdx[i]].name << setw(16) << pSet[rightIdx[i]].tp1
+                 << setw(8) << pSet[rightIdx[i]].hp << setw(8) << pSet[rightIdx[i]].atk << setw(8) << pSet[rightIdx[i]].def;
+        }
+
     }
 
     vector<pokemonType> returnVector(){
