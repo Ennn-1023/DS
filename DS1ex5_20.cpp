@@ -317,17 +317,31 @@ public:
             heapify(i, size);
         }
     }
-    void removeAll() {
-        int size = pSet.size();
-        for ( int i = 0; i < size; i++ ) {
-            swap(pSet[0], pSet[pSet.size()-1]);
-            pSet.pop_back();
-            heapify(0, pSet.size());
-            cout << endl << i+1;
-            print();
-        }
+    void removeRoot() {
+        printRoot();
+        swap(pSet[0], pSet[pSet.size()-1]);
+        pSet.pop_back();
+        heapify(0, pSet.size());
+
+        //print();
+        printLeftmostBottomNode();
     }
 
+    void printRoot() {
+        cout << "\n" <<"The removed root:" ;
+        cout << endl << setiosflags(ios::left)
+             << setw(8) << " "<< setw(8) << "#" << setw(32) << "Name" << setw(16) << "Type 1";
+        cout << setw(8) << "HP" << setw(8) << "Attack" << setw(8) << "Defense";
+
+        int n = 0;// how many digit of data in list
+        while (pow(10, n+1) <= pSet.size() ) {
+            n+=1;
+        }
+        cout << "\n[" << resetiosflags(ios::left) << setw(n) << pSet.size()-1 << setiosflags(ios::left) << setw(8-n-1) << "]";
+        cout << setw(8) << pSet[0].no << setw(32) << pSet[0].name
+             << setw(16) << pSet[0].tp1 << setw(8) << pSet[0].hp
+             << setw(8) << pSet[0].atk << setw(8) << pSet[0].def << endl;
+    }
     // Function to print the leftmost node at the bottom of the max heap
     void printLeftmostBottomNode() {
         if (pSet.empty()) {
@@ -406,7 +420,7 @@ int main() {
                 aheap.printLeftmostBottomNode() ;
                 break;
             case 3:
-                aheap.removeAll();
+                aheap.removeRoot();
                 break;
             default:
                 cout << "\nCommand does not exist!";
