@@ -337,8 +337,8 @@ public:
         while (pow(10, n+1) <= pSet.size() ) {
             n+=1;
         }
-        cout << "\n[" << resetiosflags(ios::left) << setw(n) << pSet.size()-1 << setiosflags(ios::left) << setw(8-n-1) << "]";
-        cout << setw(8) << pSet[0].no << setw(32) << pSet[0].name
+        cout << "\n" ;
+        cout << "        " <<setw(8) << pSet[0].no << setw(32) << pSet[0].name
              << setw(16) << pSet[0].tp1 << setw(8) << pSet[0].hp
              << setw(8) << pSet[0].atk << setw(8) << pSet[0].def << endl;
     }
